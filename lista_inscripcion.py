@@ -206,6 +206,8 @@ class VentanaInscripcion(tk.Toplevel):
     def limpiar_campos(self):
         for entry in self.entradas.values():
             entry.delete(0, tk.END)
+        self.tabla.selection_set('')
+        self.autocompletar_desde_tabla(self.tabla)
          
     def autocompletar_desde_tabla(self, tree):
         selected = tree.selection()
@@ -219,20 +221,6 @@ class VentanaInscripcion(tk.Toplevel):
             for key, value in zip(self.entradas.keys(), item["values"]):
                 self.entradas[key].delete(0, tk.END)
                 self.entradas[key].insert(0, value)
-                
-        # item = tree.selection()
-        # if item:
-        #     datos = tree.item(item[0])["values"]
-        #     claves = list(self.entradas.keys())
-        #     for i in range(len(claves)):
-        #         self.entradas[claves[i]].delete(0, tk.END)
-        #         self.entradas[claves[i]].insert(0, datos[i])
-        #     # Guardar versión anterior de materias al seleccionar
-        #     self.cedula_seleccionada = datos[0]
-        #     estudiante = self.lista.Buscar(self.cedula_seleccionada)
-        #     if estudiante:
-        #         # Guardar copia de materias antes de modificar
-        #         self.pila_versiones.Insertar((self.cedula_seleccionada, estudiante.info.materias))
             
     # Actualizar turno
     def actualizar_turno(self, archivo="tickets.txt"):
