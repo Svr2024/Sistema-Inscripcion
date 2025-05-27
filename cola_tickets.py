@@ -14,18 +14,25 @@ def VentanaTickets():
     cola = Cola()
 
     def añadir_en_cola():
-        # Aquí se puede implementar la lógica para crear una cola de tickets
-        cedula = entrada_cedula.get()
-        nombre = entrada_nombre.get()
-        carrera = select_carrera.get()
-        prioridad = select_prioridad.get()
-        #prioridad = int(select_prioridad.get())
-        if (cedula and nombre and carrera and prioridad):
-            if cola.Insertar(Estudiante(cedula, nombre, carrera, int(prioridad))):
-                print(f"Ticket creado para {nombre} ({cedula}) en {carrera} con prioridad {prioridad}.")
-                limpiar_entradas()
-        else:
-            print("Por favor, complete todos los campos.")
+     cedula = entrada_cedula.get()
+     nombre = entrada_nombre.get()
+     carrera = select_carrera.get()
+     prioridad = select_prioridad.get()
+
+     if cedula and nombre and carrera and prioridad:
+        estudiante = Estudiante(cedula, nombre, carrera, int(prioridad))
+        if cola.Insertar(estudiante):
+            print(f"Ticket creado para {nombre} ({cedula}) en {carrera} con prioridad {prioridad}.")
+            guardar_en_archivo(estudiante)
+            limpiar_entradas()
+     else:
+        print("Por favor, complete todos los campos.")
+        
+    def guardar_en_archivo(estudiante):
+     with open("tickets.txt", "a", encoding="utf-8") as archivo:
+        archivo.write(estudiante.get_info() + "\n")
+
+
 
     def limpiar_entradas():
         entrada_cedula.delete(0, tk.END)
