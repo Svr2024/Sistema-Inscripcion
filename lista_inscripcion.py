@@ -8,7 +8,7 @@ class VentanaInscripcion(tk.Toplevel):
     def __init__(self, master=None):
         super().__init__(master)
         self.title("Lista de Inscripción")
-        self.geometry("700x650")
+        self.geometry("850x650")
 
         contenedor = tk.Canvas(self)
         scrollbar = tk.Scrollbar(self, orient="vertical", command=contenedor.yview)
@@ -54,6 +54,8 @@ class VentanaInscripcion(tk.Toplevel):
             self.tabla.heading(col, text=col.capitalize())
             self.tabla.column(col, width=150)
         self.tabla.pack(fill="x", padx=30)
+        
+        self.tabla.bind("<<TreeviewSelect>>", lambda e: self.autocompletar_desde_tabla(self.tabla))
          # Cargar datos desde archivo tickets.txt
         self.cargar_datos_desde_archivo()
 
@@ -120,6 +122,9 @@ class VentanaInscripcion(tk.Toplevel):
 
         btn_eliminar = tk.Button(frame_botones, text="Eliminar registro")
         btn_eliminar.pack(side=tk.LEFT, padx=5)
+        
+        btn_limpiar = tk.Button(frame_botones, text="Limpiar campos", command=self.limpiar_campos)
+        btn_limpiar.pack(side=tk.LEFT, padx=5)
 
         # --------------------------
         # Botón: Historial de Ingresados
@@ -135,6 +140,8 @@ class VentanaInscripcion(tk.Toplevel):
         
         self.lista_inscritos = Lista()
         self.lista_tickets = Lista() 
+        
+        self.autocompletar_desde_tabla(self.tabla)
 
 
     def abrir_ventana_materias(self):
@@ -194,8 +201,38 @@ class VentanaInscripcion(tk.Toplevel):
           print(f"No se encontró el archivo {archivo}")
      except Exception as e:
          print(f"Error leyendo {archivo}: {e}")
+         
 
-
+    def limpiar_campos(self):
+        for entry in self.entradas.values():
+            entry.delete(0, tk.END)
+         
+    def autocompletar_desde_tabla(self, tree):
+        selected = tree.selection()
+        if selected:
+            item = tree.item(selected[0])
+            for key, value in zip(self.entradas.keys(), item["values"]):
+                self.entradas[key].delete(0, tk.END)
+                self.entradas[key].insert(0, value)
+        else:
+            item = tree.item('I001')
+            for key, value in zip(self.entradas.keys(), item["values"]):
+                self.entradas[key].delete(0, tk.END)
+                self.entradas[key].insert(0, value)
+                
+        # item = tree.selection()
+        # if item:
+        #     datos = tree.item(item[0])["values"]
+        #     claves = list(self.entradas.keys())
+        #     for i in range(len(claves)):
+        #         self.entradas[claves[i]].delete(0, tk.END)
+        #         self.entradas[claves[i]].insert(0, datos[i])
+        #     # Guardar versión anterior de materias al seleccionar
+        #     self.cedula_seleccionada = datos[0]
+        #     estudiante = self.lista.Buscar(self.cedula_seleccionada)
+        #     if estudiante:
+        #         # Guardar copia de materias antes de modificar
+        #         self.pila_versiones.Insertar((self.cedula_seleccionada, estudiante.info.materias))
             
     # Actualizar turno
     def actualizar_turno(self, archivo="tickets.txt"):

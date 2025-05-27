@@ -1,5 +1,5 @@
 1 - Sara - Ingeniería Informática - Prioridad: 2 - Materias : ['Calculo I'] - Estado: Inscrito
 2 - Roberto - Ingeniería Informática - Prioridad: 2 - Materias : ['Programacion III', 'Estadistica II', 'Calculo IV'] - Estado: Inscrito
-5 - Edickson - Análisis de Sistemas - Prioridad: 9 - Estado: pendiente
 3 - Ana - Ingeniería en Telemática - Prioridad: 1 - Materias : [] - Estado: Inscrito
 4 - Diana - Licenciatura en Matemáticas - Prioridad: 1 - Materias : ['Calculo I'] - Estado: Inscrito
+5 - Edickson - Análisis de Sistemas - Prioridad: 9 - Materias : ['Calculo I'] - Estado: Inscrito
