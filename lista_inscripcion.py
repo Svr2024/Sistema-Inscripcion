@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from pila_materias import VentanaMaterias
+from Lista import Lista,Nodo
+from Estudiante import Estudiante
 
 class VentanaInscripcion(tk.Toplevel):
     def __init__(self, master=None):
@@ -28,6 +30,7 @@ class VentanaInscripcion(tk.Toplevel):
         tk.Label(frame_turno, text="Turno:").pack(side=tk.LEFT, padx=5)
         self.textturno = tk.Entry(frame_turno)
         self.textturno.pack(side=tk.LEFT)
+        self.actualizar_turno()
 
         # --------------------------
         # Buscar
@@ -37,6 +40,7 @@ class VentanaInscripcion(tk.Toplevel):
         tk.Label(frame_buscar, text="Buscar:").pack(side=tk.LEFT, padx=5)
         self.entry_buscar = tk.Entry(frame_buscar)
         self.entry_buscar.pack(side=tk.LEFT)
+        
 
         # --------------------------
         # Tabla principal 
@@ -50,6 +54,8 @@ class VentanaInscripcion(tk.Toplevel):
             self.tabla.heading(col, text=col.capitalize())
             self.tabla.column(col, width=150)
         self.tabla.pack(fill="x", padx=30)
+         # Cargar datos desde archivo tickets.txt
+        self.cargar_datos_desde_archivo()
 
         # --------------------------
         # Campos de entrada
@@ -57,7 +63,7 @@ class VentanaInscripcion(tk.Toplevel):
         frame_form = tk.Frame(self.frame_contenido)
         frame_form.pack(pady=10)
 
-        etiquetas = ["Cédula", "Nombre", "Carrera", "Prioridad"]
+        etiquetas = ["Cedula", "Nombre", "Carrera", "Prioridad"]
         self.entradas = {}
 
         for i, campo in enumerate(etiquetas):
@@ -65,6 +71,10 @@ class VentanaInscripcion(tk.Toplevel):
             entry = tk.Entry(frame_form)
             entry.grid(row=i, column=1, padx=5, pady=5)
             self.entradas[campo.lower()] = entry
+            
+        # Actualizar textboxs con el primer registro
+        self.actualizar_campos_desde_archivo()
+
 
         # --------------------------
         # Botón: Incluir materias
@@ -99,7 +109,7 @@ class VentanaInscripcion(tk.Toplevel):
         # --------------------------
         # Botón: Inscribir alumno
         # --------------------------
-        btn_inscribir_alumno = tk.Button(self.frame_contenido, text="Inscribir")
+        btn_inscribir_alumno = tk.Button(self.frame_contenido, text="Inscribir", command=self.inscribir_alumno)
         btn_inscribir_alumno.pack(pady=5)
 
         # --------------------------
@@ -113,16 +123,193 @@ class VentanaInscripcion(tk.Toplevel):
         # --------------------------
         contenedor.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+        
+        self.lista_inscritos = Lista()
+
 
     def abrir_ventana_materias(self):
-        # Pasamos la referencia self para que la ventana materias pueda llamar actualizar_materias_confirmadas
+        
         VentanaMaterias(self)
 
     def actualizar_materias_confirmadas(self, lista_materias):
         # Limpia tabla y actualiza con lista de materias recibidas
         self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
         for materia in lista_materias:
-            # Se asume que MATERIAS_CREDITOS está importado o definido globalmente
-            from pila_materias import MATERIAS_CREDITOS  # Importa para obtener créditos
+    
+            from pila_materias import MATERIAS_CREDITOS  
             uc = MATERIAS_CREDITOS.get(materia, 0)
             self.tabla_materias_confirmadas.insert("", "end", values=(materia, uc))
+    def cargar_datos_desde_archivo(self, archivo="tickets.txt"):
+     try:
+        pendientes = []
+        inscritos = []
+
+        with open(archivo, "r", encoding="utf-8") as f:
+            for linea in f:
+                linea = linea.strip()
+                if not linea:
+                    continue
+
+                partes = linea.split(" - ")
+                if len(partes) < 4:
+                    continue
+
+                cedula = partes[0].strip()
+                nombre = partes[1].strip()
+                carrera = partes[2].strip()
+                prioridad = partes[3].replace("Prioridad:", "").strip()
+
+                estado = "Desconocido"
+                for parte in partes:
+                    if "Estado:" in parte:
+                        estado = parte.replace("Estado:", "").strip()
+                        break
+
+                registro = (cedula, nombre, carrera, prioridad, estado)
+
+                if estado.lower() == "inscrito":
+                    inscritos.append(registro)
+                else:
+                    pendientes.append(registro)
+
+        
+        for item in self.tabla.get_children():
+            self.tabla.delete(item)
+
+        # Insertar primero pendientes, luego inscritos
+        for reg in pendientes + inscritos:
+            self.tabla.insert("", "end", values=reg)
+
+     except FileNotFoundError:
+          print(f"No se encontró el archivo {archivo}")
+     except Exception as e:
+         print(f"Error leyendo {archivo}: {e}")
+
+
+            
+    # Actualizar turno
+    def actualizar_turno(self, archivo="tickets.txt"):
+      try:
+        with open(archivo, "r", encoding="utf-8") as f:
+            for linea in f:
+                linea = linea.strip()
+                if not linea:
+                    continue
+                partes = linea.split(" - ")
+                if len(partes) < 1:
+                    continue
+                cedula = partes[0].strip()
+                self.textturno.config(state="normal")
+                self.textturno.delete(0, tk.END)
+                self.textturno.insert(0, cedula)
+                self.textturno.config(state="readonly")
+                break
+      except FileNotFoundError:
+        print(f"No se encontró el archivo {archivo}")
+      except Exception as e:
+        print(f"Error leyendo {archivo}: {e}")
+        
+    def actualizar_campos_desde_archivo(self, archivo="tickets.txt"):
+     try:
+        with open(archivo, "r", encoding="utf-8") as f:
+            for linea in f:
+                linea = linea.strip()
+                if not linea:
+                    continue
+                partes = linea.split(" - ")
+                if len(partes) < 5:
+                    continue
+                
+                cedula = partes[0].strip()
+                nombre = partes[1].strip()
+                carrera = partes[2].strip()
+                prioridad = partes[3].replace("Prioridad:", "").strip()
+                
+                self.entradas["cedula"].delete(0, tk.END)
+                self.entradas["cedula"].insert(0, cedula)
+
+                self.entradas["nombre"].delete(0, tk.END)
+                self.entradas["nombre"].insert(0, nombre)
+
+                self.entradas["carrera"].delete(0, tk.END)
+                self.entradas["carrera"].insert(0, carrera)
+
+                self.entradas["prioridad"].delete(0, tk.END)
+                self.entradas["prioridad"].insert(0, prioridad)
+                break  # Solo el primer registro , siempre siempre 
+     except FileNotFoundError:
+        print(f"No se encontró el archivo {archivo}")
+     except Exception as e:
+        print(f"Error leyendo {archivo}: {e}")
+    def inscribir_alumno(self):
+    
+
+     cedula = self.entradas["cedula"].get().strip()
+     nombre = self.entradas["nombre"].get().strip()
+     carrera = self.entradas["carrera"].get().strip()
+     prioridad = self.entradas["prioridad"].get().strip()
+
+     if not all([cedula, nombre, carrera, prioridad]):
+        tk.messagebox.showerror("Error", "Todos los campos deben estar llenos.")
+        return
+
+     try:
+        with open("tickets.txt", "r", encoding="utf-8") as f:
+            lineas = f.readlines()
+     except FileNotFoundError:
+        tk.messagebox.showerror("Error", "No se encontró el archivo tickets.txt.")
+        return
+
+     encontrado = False
+     nuevas_lineas = []
+     for linea in lineas:
+        partes = linea.strip().split(" - ")
+        if partes and partes[0].strip() == cedula:
+            encontrado = True
+            continue
+        nuevas_lineas.append(linea)
+
+     if not encontrado:
+        tk.messagebox.showerror("Error", f"No existe un ticket para la cédula {cedula}.")
+        return
+
+     materias = []
+     for item in self.tabla_materias_confirmadas.get_children():
+        materia = self.tabla_materias_confirmadas.item(item, "values")[0]
+        materias.append(materia)
+
+     estudiante = Estudiante(cedula, nombre, carrera, prioridad, materias, estado="Inscrito")
+
+    # Registrar en la lista enlazada de estudiantes inscritos
+     if not self.lista_inscritos.Llena():
+      if self.lista_inscritos.Vacia():
+        self.lista_inscritos.InsComienzo(estudiante)
+      else:
+        p = self.lista_inscritos.Primero
+        while p.prox is not None:
+            p = p.prox
+        self.lista_inscritos.InsDespues(p, estudiante)
+     else:
+      tk.messagebox.showerror("Error", "No se pudo inscribir al estudiante, lista llena.")
+      return
+
+     nueva_linea = f"{estudiante.cedula} - {estudiante.nombre} - {estudiante.carrera} - Prioridad: {estudiante.prioridad} - Materias : {estudiante.materias} - Estado: Inscrito\n"
+     nuevas_lineas.append(nueva_linea)
+
+     try:
+        with open("tickets.txt", "w", encoding="utf-8") as f:
+            f.writelines(nuevas_lineas)
+
+        tk.messagebox.showinfo("Éxito", f"Estudiante {estudiante.nombre} inscrito correctamente.")
+
+        self.tabla.delete(*self.tabla.get_children())
+        self.cargar_datos_desde_archivo()
+        self.actualizar_turno()
+        self.actualizar_campos_desde_archivo()
+        self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
+
+     except Exception as e:
+        tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
+
+        
+    

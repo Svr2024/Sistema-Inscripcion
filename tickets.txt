@@ -1,1 +1,4 @@
-1 - Sara - Ingeniería Informática - Prioridad: 2 - Estado: pendiente
+1 - Sara - Ingeniería Informática - Prioridad: 2 - Materias : ['Calculo I'] - Estado: Inscrito
+3 - Ana - Ingeniería en Telemática - Prioridad: 1 - Estado: pendiente
+4 - Diana - Licenciatura en Matemáticas - Prioridad: 1 - Estado: pendiente
+2 - Roberto - Ingeniería Informática - Prioridad: 2 - Materias : ['Programacion III', 'Estadistica II', 'Calculo IV'] - Estado: Inscrito
