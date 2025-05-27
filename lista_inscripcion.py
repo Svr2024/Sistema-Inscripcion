@@ -267,61 +267,65 @@ class VentanaInscripcion(tk.Toplevel):
         print(f"Error leyendo {archivo}: {e}")
 
     def inscribir_alumno(self):
-    
+      cedula = self.entradas["cedula"].get().strip()
+      nombre = self.entradas["nombre"].get().strip()
+      carrera = self.entradas["carrera"].get().strip()
+      prioridad = self.entradas["prioridad"].get().strip()
 
-     cedula = self.entradas["cedula"].get().strip()
-     nombre = self.entradas["nombre"].get().strip()
-     carrera = self.entradas["carrera"].get().strip()
-     prioridad = self.entradas["prioridad"].get().strip()
-
-     if not all([cedula, nombre, carrera, prioridad]):
+      if not all([cedula, nombre, carrera, prioridad]):
         tk.messagebox.showerror("Error", "Todos los campos deben estar llenos.")
         return
 
-     try:
+     # Obtener materias confirmadas
+      materias = []
+      for item in self.tabla_materias_confirmadas.get_children():
+        materia = self.tabla_materias_confirmadas.item(item, "values")[0]
+        materias.append(materia)
+
+    #  ojito no permitir inscripción sin materias
+      if not materias:
+        tk.messagebox.showerror("Error", "Debe confirmar al menos una materia para poder inscribir al estudiante.")
+        return
+
+      try:
         with open("tickets.txt", "r", encoding="utf-8") as f:
             lineas = f.readlines()
-     except FileNotFoundError:
+      except FileNotFoundError:
         tk.messagebox.showerror("Error", "No se encontró el archivo tickets.txt.")
         return
 
-     encontrado = False
-     nuevas_lineas = []
-     for linea in lineas:
+      encontrado = False
+      nuevas_lineas = []
+      for linea in lineas:
         partes = linea.strip().split(" - ")
         if partes and partes[0].strip() == cedula:
             encontrado = True
             continue
         nuevas_lineas.append(linea)
 
-     if not encontrado:
+      if not encontrado:
         tk.messagebox.showerror("Error", f"No existe un ticket para la cédula {cedula}.")
         return
 
-     materias = []
-     for item in self.tabla_materias_confirmadas.get_children():
-        materia = self.tabla_materias_confirmadas.item(item, "values")[0]
-        materias.append(materia)
+      estudiante = Estudiante(cedula, nombre, carrera, prioridad, materias, estado="Inscrito")
 
-     estudiante = Estudiante(cedula, nombre, carrera, prioridad, materias, estado="Inscrito")
-
-    # Registrar en la lista enlazada de estudiantes inscritos
-     if not self.lista_inscritos.Llena():
-      if self.lista_inscritos.Vacia():
-        self.lista_inscritos.InsComienzo(estudiante)
+    # Registrar en la lista 
+      if not self.lista_inscritos.Llena():
+        if self.lista_inscritos.Vacia():
+            self.lista_inscritos.InsComienzo(estudiante)
+        else:
+            p = self.lista_inscritos.Primero
+            while p.prox is not None:
+                p = p.prox
+            self.lista_inscritos.InsDespues(p, estudiante)
       else:
-        p = self.lista_inscritos.Primero
-        while p.prox is not None:
-            p = p.prox
-        self.lista_inscritos.InsDespues(p, estudiante)
-     else:
-      tk.messagebox.showerror("Error", "No se pudo inscribir al estudiante, lista llena.")
-      return
+        tk.messagebox.showerror("Error", "No se pudo inscribir al estudiante, lista llena.")
+        return
 
-     nueva_linea = f"{estudiante.cedula} - {estudiante.nombre} - {estudiante.carrera} - Prioridad: {estudiante.prioridad} - Materias : {estudiante.materias} - Estado: Inscrito\n"
-     nuevas_lineas.append(nueva_linea)
+      nueva_linea = f"{estudiante.cedula} - {estudiante.nombre} - {estudiante.carrera} - Prioridad: {estudiante.prioridad} - Materias : {estudiante.materias} - Estado: Inscrito\n"
+      nuevas_lineas.append(nueva_linea)
 
-     try:
+      try:
         with open("tickets.txt", "w", encoding="utf-8") as f:
             f.writelines(nuevas_lineas)
 
@@ -333,7 +337,7 @@ class VentanaInscripcion(tk.Toplevel):
         self.actualizar_campos_desde_archivo()
         self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
 
-     except Exception as e:
+      except Exception as e:
         tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
 
         
