@@ -72,8 +72,59 @@ def VentanaMaterias():
 
     materias_agregadas = set()
 
-    
-    # Botón para agregar la materia
-    tk.Button(ventana, text="Agregar").pack()
+    def agregar_materia():
+        # Normalizar el texto ingresado para evitar problemas de mayúsculas/minúsculas o espacios
+        materia_seleccionada = entrada_materia.get().strip().title()
+
+        # Convertir las claves del diccionario a minúsculas para una comparación más robusta
+        materias_normalizadas = {materia.lower(): materia for materia in MATERIAS_CREDITOS}
+
+        # Buscar la materia en el diccionario normalizado
+        materia_encontrada = materias_normalizadas.get(materia_seleccionada.lower())
+
+        # Validar si la materia existe en el diccionario
+        if not materia_encontrada:
+            messagebox.showerror("Error", f"La materia '{materia_seleccionada}' no existe.")
+            return
+
+        # Usar la materia encontrada para las validaciones posteriores
+        materia_seleccionada = materia_encontrada
+
+        # Validar si la materia ya fue agregada
+        if materia_seleccionada in materias_agregadas:
+            messagebox.showerror("Error", "La materia ya fue agregada.")
+            return
+
+        # Validar si la materia pertenece a un grupo excluyente
+        for grupo in grupos_excluyentes:
+            if materia_seleccionada in grupo:
+                for materia in materias_agregadas:
+                    if materia in grupo:
+                        messagebox.showerror("Error", "No se pueden inscribir materias del mismo grupo excluyente.")
+                        return
+
+        # Validar si se exceden los 16 UC
+        total_uc = sum(MATERIAS_CREDITOS[materia] for materia in materias_agregadas)
+        if total_uc + MATERIAS_CREDITOS[materia_seleccionada] > 16:
+            messagebox.showerror("Error", "No se pueden inscribir más de 16 UC.")
+            return
+
+        # Agregar la materia a la tabla de seleccionadas
+        tabla_seleccionadas.insert("", "end", values=(materia_seleccionada, MATERIAS_CREDITOS[materia_seleccionada]))
+        materias_agregadas.add(materia_seleccionada)
+        entrada_materia.delete(0, tk.END)
+
+    # Función para rellenar el campo de entrada al seleccionar una materia de la tabla
+    def seleccionar_materia(event):
+        seleccion = tabla_materias.selection()
+        if seleccion:
+            valores = tabla_materias.item(seleccion[0], 'values')
+            entrada_materia.delete(0, tk.END)
+            entrada_materia.insert(0, valores[0])
+
+    tabla_materias.bind("<ButtonRelease-1>", seleccionar_materia)
+
+    # Botón para agregar la materia con validaciones
+    tk.Button(ventana, text="Agregar", command=agregar_materia).pack()
 
 
