@@ -1,5 +1,5 @@
 class Estudiante:
-    def __init__(self, cedula, nombre, carrera, prioridad,materias, estado="pendiente"):
+    def __init__(self, cedula, nombre, carrera, prioridad,materias=[], estado="pendiente"):
         self.cedula = cedula
         self.nombre = nombre
         self.carrera = carrera
