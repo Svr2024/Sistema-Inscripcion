@@ -13,7 +13,7 @@ class VentanaInscripcion(tk.Toplevel):
         contenedor = tk.Canvas(self)
         scrollbar = tk.Scrollbar(self, orient="vertical", command=contenedor.yview)
         self.frame_contenido = tk.Frame(contenedor)
-
+        
         self.frame_contenido.bind(
             "<Configure>",
             lambda e: contenedor.configure(scrollregion=contenedor.bbox("all"))
@@ -107,10 +107,19 @@ class VentanaInscripcion(tk.Toplevel):
         scrollbar_materias.pack(side="right", fill="y")
 
         # --------------------------
-        # Botón: Inscribir alumno
+        # Botones Principales
         # --------------------------
-        btn_inscribir_alumno = tk.Button(self.frame_contenido, text="Inscribir", command=self.inscribir_alumno)
-        btn_inscribir_alumno.pack(pady=5)
+        frame_botones = tk.Frame(self.frame_contenido)
+        frame_botones.pack(pady=5)
+
+        btn_inscribir_alumno = tk.Button(frame_botones, text="Inscribir", command=self.inscribir_alumno)
+        btn_inscribir_alumno.pack(side=tk.LEFT, padx=5)
+
+        btn_cancelar = tk.Button(frame_botones, text="Cancelar inscripción")
+        btn_cancelar.pack(side=tk.LEFT, padx=5)
+
+        btn_eliminar = tk.Button(frame_botones, text="Eliminar registro")
+        btn_eliminar.pack(side=tk.LEFT, padx=5)
 
         # --------------------------
         # Botón: Historial de Ingresados
@@ -125,6 +134,7 @@ class VentanaInscripcion(tk.Toplevel):
         scrollbar.pack(side="right", fill="y")
         
         self.lista_inscritos = Lista()
+        self.lista_tickets = Lista() 
 
 
     def abrir_ventana_materias(self):
@@ -339,6 +349,4 @@ class VentanaInscripcion(tk.Toplevel):
 
       except Exception as e:
         tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
-
-        
-    
+  
