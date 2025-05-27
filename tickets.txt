@@ -2,3 +2,4 @@
 3 - Ana - Ingeniería en Telemática - Prioridad: 1 - Estado: pendiente
 4 - Diana - Licenciatura en Matemáticas - Prioridad: 1 - Estado: pendiente
 2 - Roberto - Ingeniería Informática - Prioridad: 2 - Materias : ['Programacion III', 'Estadistica II', 'Calculo IV'] - Estado: Inscrito
+5 - Edickson - Análisis de Sistemas - Prioridad: 9 - Estado: pendiente

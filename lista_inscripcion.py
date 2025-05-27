@@ -189,25 +189,41 @@ class VentanaInscripcion(tk.Toplevel):
             
     # Actualizar turno
     def actualizar_turno(self, archivo="tickets.txt"):
-      try:
+     try:
         with open(archivo, "r", encoding="utf-8") as f:
             for linea in f:
                 linea = linea.strip()
                 if not linea:
                     continue
                 partes = linea.split(" - ")
-                if len(partes) < 1:
+                if len(partes) < 4:
                     continue
+
                 cedula = partes[0].strip()
+
+                estado = "Desconocido"
+                for parte in partes:
+                    if "Estado:" in parte:
+                        estado = parte.replace("Estado:", "").strip()
+                        break
+
+                if estado.lower() != "inscrito":
+                    self.textturno.config(state="normal")
+                    self.textturno.delete(0, tk.END)
+                    self.textturno.insert(0, cedula)
+                    self.textturno.config(state="readonly")
+                    break  # Solo el primer pendiente
+            else:
+                # Si no hay pendientes, se borra el campo porque ya se atendieron  todos
                 self.textturno.config(state="normal")
                 self.textturno.delete(0, tk.END)
-                self.textturno.insert(0, cedula)
+                self.textturno.insert(0, "Sin pendientes")
                 self.textturno.config(state="readonly")
-                break
-      except FileNotFoundError:
+     except FileNotFoundError:
         print(f"No se encontró el archivo {archivo}")
-      except Exception as e:
+     except Exception as e:
         print(f"Error leyendo {archivo}: {e}")
+
         
     def actualizar_campos_desde_archivo(self, archivo="tickets.txt"):
      try:
@@ -217,30 +233,39 @@ class VentanaInscripcion(tk.Toplevel):
                 if not linea:
                     continue
                 partes = linea.split(" - ")
-                if len(partes) < 5:
+                if len(partes) < 4:
                     continue
-                
+
                 cedula = partes[0].strip()
                 nombre = partes[1].strip()
                 carrera = partes[2].strip()
                 prioridad = partes[3].replace("Prioridad:", "").strip()
-                
-                self.entradas["cedula"].delete(0, tk.END)
-                self.entradas["cedula"].insert(0, cedula)
 
-                self.entradas["nombre"].delete(0, tk.END)
-                self.entradas["nombre"].insert(0, nombre)
+                estado = "Desconocido"
+                for parte in partes:
+                    if "Estado:" in parte:
+                        estado = parte.replace("Estado:", "").strip()
+                        break
 
-                self.entradas["carrera"].delete(0, tk.END)
-                self.entradas["carrera"].insert(0, carrera)
+                # Solo llenamos campos si el estado es Pendiente
+                if estado.lower() != "inscrito":
+                    self.entradas["cedula"].delete(0, tk.END)
+                    self.entradas["cedula"].insert(0, cedula)
 
-                self.entradas["prioridad"].delete(0, tk.END)
-                self.entradas["prioridad"].insert(0, prioridad)
-                break  # Solo el primer registro , siempre siempre 
+                    self.entradas["nombre"].delete(0, tk.END)
+                    self.entradas["nombre"].insert(0, nombre)
+
+                    self.entradas["carrera"].delete(0, tk.END)
+                    self.entradas["carrera"].insert(0, carrera)
+
+                    self.entradas["prioridad"].delete(0, tk.END)
+                    self.entradas["prioridad"].insert(0, prioridad)
+                    break  # Solo el primer PENDIENTE
      except FileNotFoundError:
         print(f"No se encontró el archivo {archivo}")
      except Exception as e:
         print(f"Error leyendo {archivo}: {e}")
+
     def inscribir_alumno(self):
     
 
