@@ -101,6 +101,9 @@ def VentanaMaterias(ventana_inscripcion=None):
     for materia, uc in MATERIAS_CREDITOS.items():
         tabla_materias.insert("", "end", values=(materia, uc))
         
+    # Diccionario normalizado para búsqueda insensible a mayúsculas/minúsculas
+    materias_normalizadas = {materia.lower(): materia for materia in MATERIAS_CREDITOS}
+    
     def obtener_creditos_totales():
         total = 0
         for item in tabla_seleccionadas.get_children():
@@ -118,20 +121,33 @@ def VentanaMaterias(ventana_inscripcion=None):
         return False
 
     def agregar_materia():
-        materia = entrada_materia.get().strip()
-        if materia == "":
+        # Normalizar el texto ingresado para evitar problemas de mayúsculas/minúsculas o espacios
+        materia_input = entrada_materia.get().strip()
+        
+        if materia_input == "":
             messagebox.showwarning("Advertencia", "Ingrese al menos una materia.")
             return
-        if materia not in MATERIAS_CREDITOS:
-            messagebox.showerror("Error", f"La materia '{materia}' no existe, por favor verifique en la tabla de Materias su existencia .")
+
+        # Buscar la materia en el diccionario normalizado
+        materia_encontrada = materias_normalizadas.get(materia_input.lower())
+
+        # Validar si la materia existe en el diccionario
+        if not materia_encontrada:
+            messagebox.showerror("Error", f"La materia '{materia_input}' no existe, por favor verifique en la tabla de Materias su existencia.")
             return
+
+        # Usar la materia encontrada (con el formato correcto) para las validaciones posteriores
+        materia = materia_encontrada
+        
         # Verificar si ya está en la pila (materias seleccionadas)
         if materia in pila_materias.obtener_contenido():
             messagebox.showinfo("Duplicado", "Esta materia ya fue agregada.")
             return
+            
         if esta_en_grupo_excluyente(materia):
             messagebox.showwarning("Conflicto", f"La materia '{materia}' pertenece a un grupo excluyente.")
             return
+            
         creditos_actuales = obtener_creditos_totales()
         uc = MATERIAS_CREDITOS[materia]
         if creditos_actuales + uc > MAX_CREDITOS:
@@ -160,7 +176,7 @@ def VentanaMaterias(ventana_inscripcion=None):
             messagebox.showinfo("Éxito", "Materias confirmadas y pasadas a inscripción.")
             ventana.destroy()  
         except AttributeError:
-            messagebox.showerror("Error", "Ha ocurrido un error inesperado'.")
+            messagebox.showerror("Error", "Ha ocurrido un error inesperado.")
 
     # Botón Confirmar Materias 
     boton_confirmar = tk.Button(ventana, text="Confirmar materias", command=confirmar_materias)
@@ -175,8 +191,9 @@ def VentanaMaterias(ventana_inscripcion=None):
                 tabla_materias.insert("", "end", values=(materia, uc))
     
     entrada_busqueda.bind("<KeyRelease>", filtrar_materias)
-
-    def seleccionar_materia(event):
+    
+    # Función para manejar doble clic en tabla de materias
+    def seleccionar_materia_doble_clic(event):
         item = tabla_materias.selection()
         if item:
             valores = tabla_materias.item(item[0], "values")
@@ -196,8 +213,18 @@ def VentanaMaterias(ventana_inscripcion=None):
                     return
                 pila_materias.Insertar(materia)
                 tabla_seleccionadas.insert("", "end", values=(materia, uc))
-
-    tabla_materias.bind("<Double-1>", seleccionar_materia)
+    
+    # Función para rellenar el campo de entrada al seleccionar una materia
+    def seleccionar_materia_clic(event):
+        seleccion = tabla_materias.selection()
+        if seleccion:
+            valores = tabla_materias.item(seleccion[0], 'values')
+            entrada_materia.delete(0, tk.END)
+            entrada_materia.insert(0, valores[0])
+    
+    # Configurar ambos eventos: doble clic para agregar y clic para seleccionar
+    tabla_materias.bind("<Double-1>", seleccionar_materia_doble_clic)
+    tabla_materias.bind("<ButtonRelease-1>", seleccionar_materia_clic)
 
 
     ventana.mainloop()
