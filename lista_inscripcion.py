@@ -46,14 +46,26 @@ class VentanaInscripcion(tk.Toplevel):
         # Tabla principal 
         # --------------------------
         frame_tabla = tk.Frame(self.frame_contenido)
-        frame_tabla.pack(fill="x", expand=True, padx=10)
+        frame_tabla.pack(fill="both", expand=True, padx=10)
 
-        columnas = ("cedula", "nombre", "carrera", "prioridad", "estado" )
-        self.tabla = ttk.Treeview(frame_tabla, columns=columnas, show="headings", height=5)
+        scrollbar_tabla = tk.Scrollbar(frame_tabla, orient="vertical")
+        scrollbar_tabla.pack(side="right", fill="y")
+
+        columnas = ("cedula", "nombre", "carrera", "prioridad", "estado")
+        self.tabla = ttk.Treeview(
+         frame_tabla,
+         columns=columnas,
+         show="headings",
+         height=8,
+         yscrollcommand=scrollbar_tabla.set
+         )
         for col in columnas:
-            self.tabla.heading(col, text=col.capitalize())
-            self.tabla.column(col, width=150)
-        self.tabla.pack(fill="x", padx=30)
+         self.tabla.heading(col, text=col.capitalize())
+         self.tabla.column(col, width=150)
+
+        self.tabla.pack(side="left", fill="both", expand=True)
+        scrollbar_tabla.config(command=self.tabla.yview)
+
         
         self.tabla.bind("<<TreeviewSelect>>", lambda e: self.autocompletar_desde_tabla(self.tabla))
          # Cargar datos desde archivo tickets.txt
@@ -117,7 +129,7 @@ class VentanaInscripcion(tk.Toplevel):
         btn_inscribir_alumno = tk.Button(frame_botones, text="Inscribir", command=self.inscribir_alumno)
         btn_inscribir_alumno.pack(side=tk.LEFT, padx=5)
 
-        btn_cancelar = tk.Button(frame_botones, text="Cancelar inscripción")
+        btn_cancelar = tk.Button(frame_botones, text="Cancelar inscripción", command=self.cancelar_inscripcion)
         btn_cancelar.pack(side=tk.LEFT, padx=5)
 
         btn_eliminar = tk.Button(frame_botones, text="Eliminar registro")
@@ -207,7 +219,7 @@ class VentanaInscripcion(tk.Toplevel):
         for entry in self.entradas.values():
             entry.delete(0, tk.END)
         self.tabla.selection_set('')
-        self.autocompletar_desde_tabla(self.tabla)
+        self.actualizar_campos_desde_archivo()
          
     def autocompletar_desde_tabla(self, tree):
         selected = tree.selection()
@@ -374,4 +386,101 @@ class VentanaInscripcion(tk.Toplevel):
 
       except Exception as e:
         tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
-  
+        
+          
+    def cancelar_inscripcion(self):
+        cedula = self.entradas["cedula"].get().strip()
+
+        if not cedula:
+            tk.messagebox.showerror("Error", "No hay estudiante seleccionado para cancelar.")
+            return
+
+        try:
+            with open("tickets.txt", "r", encoding="utf-8") as f:
+                lineas = f.readlines()
+        except FileNotFoundError:
+            tk.messagebox.showerror("Error", "No se encontró el archivo tickets.txt.")
+            return
+
+        pendientes = []
+        inscritos = []
+        estudiante_cancelado = None
+        es_pendiente = False
+
+        # Separar los registros y encontrar el que se va a cancelar
+        for linea in lineas:
+            linea = linea.strip()
+            if not linea:
+                continue
+
+            partes = linea.split(" - ")
+            if len(partes) < 4:
+                continue
+
+            current_cedula = partes[0].strip()
+            estado = "Desconocido"
+            for parte in partes:
+                if "Estado:" in parte:
+                    estado = parte.replace("Estado:", "").strip()
+                    break
+
+            # Buscar el estudiante a cancelar
+            if current_cedula == cedula:
+                # Extraer información del estudiante
+                nombre = partes[1].strip()
+                carrera = partes[2].strip()
+                prioridad = partes[3].replace("Prioridad:", "").strip()
+
+                # Obtener materias si existen
+                materias = []
+                for parte in partes:
+                    if "Materias :" in parte:
+                        materias_str = parte.replace("Materias :", "").strip()
+                        materias = eval(materias_str)  # Convertir string de lista a lista real
+                        break
+
+                if estado.lower() == "inscrito":
+                    # Crear nuevo registro con estado pendiente
+                    estudiante_cancelado = f"{cedula} - {nombre} - {carrera} - Prioridad: {prioridad} - Materias : {materias} - Estado: Pendiente\n"
+                elif estado.lower() == "pendiente":
+                    estudiante_cancelado = linea + "\n"
+                    es_pendiente = True
+            elif estado.lower() == "pendiente":
+                pendientes.append(linea + "\n")
+            elif estado.lower() == "inscrito":
+                inscritos.append(linea + "\n")
+
+        if estudiante_cancelado is None:
+            tk.messagebox.showerror("Error", f"No se encontró un estudiante con cédula {cedula}.")
+            return
+
+        # Si el estudiante ya era pendiente, lo quitamos de la lista de pendientes
+        if es_pendiente:
+            pendientes = [p for p in pendientes if not p.startswith(cedula + " -")]
+
+        # Reconstruir el archivo:
+        # 1. Pendientes originales (excepto el cancelado si era pendiente)
+        # 2. Estudiante cancelado (al final de pendientes)
+        # 3. Inscritos originales
+        nuevas_lineas = pendientes + [estudiante_cancelado] + inscritos
+
+        try:
+            with open("tickets.txt", "w", encoding="utf-8") as f:
+                f.writelines(nuevas_lineas)
+
+            if es_pendiente:
+                tk.messagebox.showinfo("Éxito",
+                                       "Estudiante pendiente reprogramado. Se ha movido al final de la lista de pendientes.")
+            else:
+                tk.messagebox.showinfo("Éxito",
+                                       "Inscripción cancelada. El estudiante ha sido movido al final de la lista de pendientes.")
+
+            # Actualizar la interfaz
+            self.tabla.delete(*self.tabla.get_children())
+            self.cargar_datos_desde_archivo()
+            self.actualizar_turno()
+            self.actualizar_campos_desde_archivo()
+            self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
+
+        except Exception as e:
+            tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")

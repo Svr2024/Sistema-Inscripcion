@@ -3,6 +3,8 @@ from tkinter import ttk
 from colas import Cola
 from Estudiante import Estudiante
 from lista_inscripcion import VentanaInscripcion
+from tkinter import messagebox
+
 
 def VentanaTickets():
     ventana = tk.Toplevel()
@@ -23,6 +25,7 @@ def VentanaTickets():
         estudiante = Estudiante(cedula, nombre, carrera, int(prioridad))
         if cola.Insertar(estudiante):
             print(f"Ticket creado para {nombre} ({cedula}) en {carrera} con prioridad {prioridad}.")
+            tk.messagebox.showinfo("Éxito", f"Ticket creado para {nombre} ({cedula}) en {carrera} con prioridad {prioridad}.")
             #guardar_en_archivo(estudiante)
             cola.MostrarContenido()
             limpiar_entradas()
@@ -31,6 +34,7 @@ def VentanaTickets():
             tk.messagebox.showerror("Error", "¡La cola está llena (memoria llena)!")
      else:
         print("Por favor, complete todos los campos.")
+        messagebox.showwarning("Campos incompletos", "Por favor, complete todos los campos.")
         
     def guardar_en_archivo(estudiante):
      with open("tickets.txt", "a", encoding="utf-8") as archivo:
