@@ -25,11 +25,11 @@ def VentanaTickets():
         if cola.Insertar(estudiante):
             print(f"Ticket creado para {nombre} ({cedula}) en {carrera} con prioridad {prioridad}.")
             guardar_en_archivo(estudiante)
-                cola.MostrarContenido()
+            cola.MostrarContenido()
             limpiar_entradas()
-            else:
-                print("¡La cola está llena (memoria llena)!")
-                tk.messagebox.showerror("Error", "¡La cola está llena (memoria llena)!")
+        else:
+            print("¡La cola está llena (memoria llena)!")
+            tk.messagebox.showerror("Error", "¡La cola está llena (memoria llena)!")
      else:
         print("Por favor, complete todos los campos.")
         
