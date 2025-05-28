@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from colas import Cola
 from Estudiante import Estudiante
-from Lista import Lista
 from lista_inscripcion import VentanaInscripcion
 
 def VentanaTickets():
@@ -59,6 +58,8 @@ def VentanaTickets():
                 i += 1
             cola_aux.MostrarContenido()
             tk.messagebox.showinfo("Info", "Se ha reordenado por prioridad")
+            ventana.destroy()
+            VentanaInscripcion()
         else:
             print("La cola está vacía, no se puede ordenar.")
             tk.messagebox.showinfo("Info", "La cola está vacía, no se puede ordenar.")
