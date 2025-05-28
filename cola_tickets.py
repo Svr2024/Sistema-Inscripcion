@@ -24,7 +24,7 @@ def VentanaTickets():
         estudiante = Estudiante(cedula, nombre, carrera, int(prioridad))
         if cola.Insertar(estudiante):
             print(f"Ticket creado para {nombre} ({cedula}) en {carrera} con prioridad {prioridad}.")
-            guardar_en_archivo(estudiante)
+            #guardar_en_archivo(estudiante)
             cola.MostrarContenido()
             limpiar_entradas()
         else:
@@ -58,11 +58,23 @@ def VentanaTickets():
                     nodo = nodo.prox
                 i += 1
             lista_aux.MostrarContenido()
+            correr_lista_prioridad(lista_aux)  # Correr la lista de prioridad
             #VentanaInscripcion()
             #ventana.destroy()  # Cerrar la ventana de tickets
         else:
             print("La cola está vacía, no se puede ordenar.")
             tk.messagebox.showinfo("Info", "La cola está vacía, no se puede ordenar.")
+
+    def correr_lista_prioridad(lista):
+        # Correr la lista de prioridad
+        if not lista.Vacia():
+            nodo = lista.Primero
+            while nodo is not None:
+                estudiante = nodo.info
+                guardar_en_archivo(estudiante)
+                nodo = nodo.prox
+        else:
+            print("La lista de prioridad está vacía.")
 
     prioridad_opciones = [str(i) for i in range(1, 11)]
     carrera_opciones = ["Ingeniería Informática",
