@@ -3,15 +3,15 @@ from cola_tickets import VentanaTickets
 from lista_inscripcion import VentanaInscripcion
 
 def abrir_ventana_inscripcion():
-    root.withdraw()  # Oculta la ventana principal
+    root.withdraw()  
 
-    ventana = VentanaInscripcion(root)  # Le pasa root como master
+    ventana = VentanaInscripcion(root) 
 
     def al_cerrar():
         ventana.destroy()
-        root.deiconify()  # Vuelve a mostrar la ventana principal
+        root.deiconify()  
 
-    ventana.protocol("WM_DELETE_WINDOW", al_cerrar)  # Reacciona al cierre de la ventana
+    ventana.protocol("WM_DELETE_WINDOW", al_cerrar) 
 
 root = tk.Tk()
 root.title("Sistema de Inscripción")
