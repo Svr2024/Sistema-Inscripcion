@@ -45,36 +45,23 @@ def VentanaTickets():
         select_carrera.set('')
         select_prioridad.set('')
 
-    def ordenar_cola():
-        # Ordenar la cola por prioridad
+    def ordenar_prioridad():
         if not cola.Vacia():
-            lista_aux = Lista()
+            cola_aux = Cola()
             i = 1
             while i <= 10:
-                nodo = cola.Frente
-                while nodo is not None:
-                    if nodo.info.prioridad == i:
-                        lista_aux.InsComienzo(nodo.info)
-                    nodo = nodo.prox
+                p = cola.Frente
+                while p is not None:
+                    if (p.info.prioridad == i):
+                        guardar_en_archivo(p.info)
+                        cola_aux.Insertar(p.info)
+                    p = p.prox
                 i += 1
-            lista_aux.MostrarContenido()
-            correr_lista_prioridad(lista_aux)  # Correr la lista de prioridad
-            #VentanaInscripcion()
-            #ventana.destroy()  # Cerrar la ventana de tickets
+            cola_aux.MostrarContenido()
+            tk.messagebox.showinfo("Info", "Se ha reordenado por prioridad")
         else:
             print("La cola está vacía, no se puede ordenar.")
             tk.messagebox.showinfo("Info", "La cola está vacía, no se puede ordenar.")
-
-    def correr_lista_prioridad(lista):
-        # Correr la lista de prioridad
-        if not lista.Vacia():
-            nodo = lista.Primero
-            while nodo is not None:
-                estudiante = nodo.info
-                guardar_en_archivo(estudiante)
-                nodo = nodo.prox
-        else:
-            print("La lista de prioridad está vacía.")
 
     prioridad_opciones = [str(i) for i in range(1, 11)]
     carrera_opciones = ["Ingeniería Informática",
@@ -104,4 +91,4 @@ def VentanaTickets():
     select_prioridad.pack()
 
     tk.Button(ventana, text="Obtener Ticket", command=añadir_en_cola).pack(pady=10)
-    tk.Button(ventana, text="Cerrar Taquilla", command=ordenar_cola).pack(pady=10)
+    tk.Button(ventana, text="Cerrar Taquilla", command=ordenar_prioridad).pack(pady=10)
