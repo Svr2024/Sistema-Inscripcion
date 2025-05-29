@@ -223,16 +223,22 @@ class VentanaInscripcion(tk.Toplevel):
          
     def autocompletar_desde_tabla(self, tree):
         selected = tree.selection()
+        items = tree.get_children()
         if selected:
             item = tree.item(selected[0])
             for key, value in zip(self.entradas.keys(), item["values"]):
                 self.entradas[key].delete(0, tk.END)
                 self.entradas[key].insert(0, value)
-        else:
-            item = tree.item('I001')
+        elif items:
+            # Si no hay selección pero la tabla tiene elementos, autocompletar con el primero
+            item = tree.item(items[0])
             for key, value in zip(self.entradas.keys(), item["values"]):
                 self.entradas[key].delete(0, tk.END)
                 self.entradas[key].insert(0, value)
+        else:
+            # Si la tabla está vacía, limpiar los campos
+            for entry in self.entradas.values():
+                entry.delete(0, tk.END)
             
     # Actualizar turno
     def actualizar_turno(self, archivo="tickets.txt"):
