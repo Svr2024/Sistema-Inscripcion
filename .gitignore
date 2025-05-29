@@ -60,5 +60,4 @@ venv.bak/
 *.swp
 *.swo
 
-__pychache__/
 tickets.txt
