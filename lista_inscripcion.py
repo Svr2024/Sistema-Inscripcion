@@ -160,7 +160,7 @@ def abrir_ventana_ingresados(self):
     ventana_ingresados = tk.Toplevel(self)
     ventana_ingresados.title("Lista de Ingresados")
     ventana_ingresados.geometry("600x400")
-
+    
     # Crear un Treeview para mostrar los inscritos
     columnas = ("cedula", "nombre", "carrera", "prioridad")
     tabla_inscritos = ttk.Treeview(ventana_ingresados, columns=columnas, show="headings")
@@ -189,11 +189,31 @@ def abrir_ventana_ingresados(self):
     kfccombobox_filtro.pack(pady=5)
     kfccombobox_filtro.set("Todas las carreras")
 
-    # Vincular el evento de filtrado
     kfccombobox_filtro.bind("<<ComboboxSelected>>", lambda e: self.filtrar_estudiantes_por_carrera(tabla_inscritos, kfccombobox_filtro.get()))
 
-    # Insertar todos los inscritos por defecto
     self.filtrar_estudiantes_por_carrera(tabla_inscritos, "Todas las carreras")
+
+def obtener_inscritos(self):
+    inscritos = []
+    p = self.lista_inscritos.Primero
+    while p is not None:
+        if p.info.estado.lower() == "inscrito":
+            inscritos.append((p.info.cedula, p.info.nombre, p.info.carrera, p.info.prioridad))
+        p = p.prox
+    return inscritos
+
+def filtrar_estudiantes_por_carrera(self, tabla_inscritos, carrera_seleccionada):
+    # Limpiar la tabla antes de insertar nuevos datos
+    for item in tabla_inscritos.get_children():
+        tabla_inscritos.delete(item)
+
+    # Obtener lista de estudiantes inscritos
+    lista_inscritos = self.obtener_inscritos()
+
+    # Filtrar por carrera
+    for estudiante in lista_inscritos:
+        if carrera_seleccionada == "Todas las carreras" or estudiante[2] == carrera_seleccionada:
+            tabla_inscritos.insert("", "end", values=estudiante)
 
 def filtrar_estudiantes_por_carrera(self, tabla_inscritos, carrera_seleccionada):
     # Limpiar la tabla antes de insertar nuevos datos
