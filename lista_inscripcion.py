@@ -141,7 +141,7 @@ class VentanaInscripcion(tk.Toplevel):
         # --------------------------
         # Botón: Historial de Ingresados
         # --------------------------
-        btn_ver_ingresados = tk.Button(self.frame_contenido, text="Ver ingresados")
+        btn_ver_ingresados = tk.Button(self.frame_contenido, text="Ver ingresados", command=self.abrir_ventana_ingresados)
         btn_ver_ingresados.pack(pady=6)
 
         # --------------------------
@@ -155,6 +155,76 @@ class VentanaInscripcion(tk.Toplevel):
         
         self.autocompletar_desde_tabla(self.tabla)
 
+def abrir_ventana_ingresados(self):
+    # Crear una nueva ventana para mostrar los inscritos
+    ventana_ingresados = tk.Toplevel(self)
+    ventana_ingresados.title("Lista de Ingresados")
+    ventana_ingresados.geometry("600x400")
+    
+    # Crear un Treeview para mostrar los inscritos
+    columnas = ("cedula", "nombre", "carrera", "prioridad")
+    tabla_inscritos = ttk.Treeview(ventana_ingresados, columns=columnas, show="headings")
+
+    for col in columnas:
+        tabla_inscritos.heading(col, text=col.capitalize())
+        tabla_inscritos.column(col, width=100)
+
+    tabla_inscritos.pack(fill="both", expand=True)
+
+    # Botón para cerrar la ventana
+    btn_cerrar = tk.Button(ventana_ingresados, text="Cerrar", command=ventana_ingresados.destroy)
+    btn_cerrar.pack(pady=10)
+
+    # Obtener las carreras registradas
+    carreras_registradas = set()
+    p = self.lista_inscritos.Primero
+    while p is not None:
+        carreras_registradas.add(p.info.carrera)
+        p = p.prox
+
+    lista_carreras = sorted(carreras_registradas)
+    lista_carreras.insert(0, "Todas las carreras")
+
+    kfccombobox_filtro = ttk.Combobox(ventana_ingresados, values=lista_carreras, state="readonly")
+    kfccombobox_filtro.pack(pady=5)
+    kfccombobox_filtro.set("Todas las carreras")
+
+    kfccombobox_filtro.bind("<<ComboboxSelected>>", lambda e: self.filtrar_estudiantes_por_carrera(tabla_inscritos, kfccombobox_filtro.get()))
+
+    self.filtrar_estudiantes_por_carrera(tabla_inscritos, "Todas las carreras")
+
+def obtener_inscritos(self):
+    inscritos = []
+    p = self.lista_inscritos.Primero
+    while p is not None:
+        if p.info.estado.lower() == "inscrito":
+            inscritos.append((p.info.cedula, p.info.nombre, p.info.carrera, p.info.prioridad))
+        p = p.prox
+    return inscritos
+
+def filtrar_estudiantes_por_carrera(self, tabla_inscritos, carrera_seleccionada):
+    # Limpiar la tabla antes de insertar nuevos datos
+    for item in tabla_inscritos.get_children():
+        tabla_inscritos.delete(item)
+
+    # Obtener lista de estudiantes inscritos
+    lista_inscritos = self.obtener_inscritos()
+
+    # Filtrar por carrera
+    for estudiante in lista_inscritos:
+        if carrera_seleccionada == "Todas las carreras" or estudiante[2] == carrera_seleccionada:
+            tabla_inscritos.insert("", "end", values=estudiante)
+
+def filtrar_estudiantes_por_carrera(self, tabla_inscritos, carrera_seleccionada):
+    # Limpiar la tabla antes de insertar nuevos datos
+    for item in tabla_inscritos.get_children():
+        tabla_inscritos.delete(item)
+
+    p = self.lista_inscritos.Primero
+    while p is not None:
+        if carrera_seleccionada == "Todas las carreras" or p.info.carrera == carrera_seleccionada:
+            tabla_inscritos.insert("", "end", values=(p.info.cedula, p.info.nombre, p.info.carrera, p.info.prioridad))
+        p = p.prox
 
     def abrir_ventana_materias(self):
         
