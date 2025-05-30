@@ -5,6 +5,26 @@ from tkinter import ttk
 from pila_materias import VentanaMaterias
 from Lista import Lista,Nodo
 from Estudiante import Estudiante
+import ast
+from tkinter import messagebox
+
+# Helper to center a window on the screen
+def center_window(win, width=None, height=None):
+    win.update_idletasks()
+    if width is None or height is None:
+        win_width = win.winfo_width()
+        win_height = win.winfo_height()
+        if win_width == 1 or win_height == 1:  # Not yet drawn
+            win_width = win.winfo_reqwidth()
+            win_height = win.winfo_reqheight()
+    else:
+        win_width = width
+        win_height = height
+    screen_width = win.winfo_screenwidth()
+    screen_height = win.winfo_screenheight()
+    x = (screen_width // 2) - (win_width // 2)
+    y = (screen_height // 2) - (win_height // 2)
+    win.geometry(f"{win_width}x{win_height}+{x}+{y}")
 
 class VentanaInscripcion(tk.Toplevel):
     def __init__(self, master=None):
@@ -12,6 +32,7 @@ class VentanaInscripcion(tk.Toplevel):
         self.title("Lista de Inscripción")
         self.geometry("850x650")
         self.pila_cambios = Pila()
+        center_window(self, 850, 650)
 
         contenedor = tk.Canvas(self)
         scrollbar = tk.Scrollbar(self, orient="vertical", command=contenedor.yview)
@@ -155,8 +176,9 @@ class VentanaInscripcion(tk.Toplevel):
         contenedor.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
+        # Lista enlazada solo para operaciones en memoria durante la sesión.
+        # No se usa para almacenamiento persistente.
         self.lista_inscritos = Lista()
-        self.lista_tickets = Lista() 
         
         self.autocompletar_desde_tabla(self.tabla)
         self.entry_buscar.bind("<KeyRelease>", self.buscar_por_cedula)
@@ -310,7 +332,6 @@ class VentanaInscripcion(tk.Toplevel):
                 else:
                     pendientes.append(registro)
 
-        
         for item in self.tabla.get_children():
             self.tabla.delete(item)
 
@@ -319,9 +340,9 @@ class VentanaInscripcion(tk.Toplevel):
             self.tabla.insert("", "end", values=reg)
 
      except FileNotFoundError:
-          print(f"No se encontró el archivo {archivo}")
+          messagebox.showerror("Error", f"No se encontró el archivo {archivo}")
      except Exception as e:
-         print(f"Error leyendo {archivo}: {e}")
+         messagebox.showerror("Error", f"Error leyendo {archivo}: {e}")
          
 
     def limpiar_campos(self):
@@ -382,9 +403,9 @@ class VentanaInscripcion(tk.Toplevel):
                 self.textturno.insert(0, "Sin pendientes")
                 self.textturno.config(state="readonly")
      except FileNotFoundError:
-        print(f"No se encontró el archivo {archivo}")
+        messagebox.showerror("Error", f"No se encontró el archivo {archivo}")
      except Exception as e:
-        print(f"Error leyendo {archivo}: {e}")
+        messagebox.showerror("Error", f"Error leyendo {archivo}: {e}")
 
         
     def actualizar_campos_desde_archivo(self, archivo="tickets.txt"):
@@ -424,9 +445,9 @@ class VentanaInscripcion(tk.Toplevel):
                     self.entradas["prioridad"].insert(0, prioridad)
                     break  # Solo el primer PENDIENTE
      except FileNotFoundError:
-        print(f"No se encontró el archivo {archivo}")
+        messagebox.showerror("Error", f"No se encontró el archivo {archivo}")
      except Exception as e:
-        print(f"Error leyendo {archivo}: {e}")
+        messagebox.showerror("Error", f"Error leyendo {archivo}: {e}")
 
     def inscribir_alumno(self):
       cedula = self.entradas["cedula"].get().strip()
@@ -435,7 +456,7 @@ class VentanaInscripcion(tk.Toplevel):
       prioridad = self.entradas["prioridad"].get().strip()
 
       if not all([cedula, nombre, carrera, prioridad]):
-        tk.messagebox.showerror("Error", "Todos los campos deben estar llenos.")
+        messagebox.showerror("Error", "Todos los campos deben estar llenos.")
         return
 
      # Obtener materias confirmadas
@@ -446,14 +467,14 @@ class VentanaInscripcion(tk.Toplevel):
 
     #  ojito no permitir inscripción sin materias
       if not materias:
-        tk.messagebox.showerror("Error", "Debe confirmar al menos una materia para poder inscribir al estudiante.")
+        messagebox.showerror("Error", "Debe confirmar al menos una materia para poder inscribir al estudiante.")
         return
 
       try:
         with open("tickets.txt", "r", encoding="utf-8") as f:
             lineas = f.readlines()
       except FileNotFoundError:
-        tk.messagebox.showerror("Error", "No se encontró el archivo tickets.txt.")
+        messagebox.showerror("Error", "No se encontró el archivo tickets.txt.")
         return
 
       encontrado = False
@@ -466,7 +487,7 @@ class VentanaInscripcion(tk.Toplevel):
         nuevas_lineas.append(linea)
 
       if not encontrado:
-        tk.messagebox.showerror("Error", f"No existe un ticket para la cédula {cedula}.")
+        messagebox.showerror("Error", f"No existe un ticket para la cédula {cedula}.")
         return
 
       estudiante = Estudiante(cedula, nombre, carrera, prioridad, materias, estado="Inscrito")
@@ -481,7 +502,7 @@ class VentanaInscripcion(tk.Toplevel):
                 p = p.prox
             self.lista_inscritos.InsDespues(p, estudiante)
       else:
-        tk.messagebox.showerror("Error", "No se pudo inscribir al estudiante, lista llena.")
+        messagebox.showerror("Error", "No se pudo inscribir al estudiante, lista llena.")
         return
 
       nueva_linea = f"{estudiante.cedula} - {estudiante.nombre} - {estudiante.carrera} - Prioridad: {estudiante.prioridad} - Materias : {estudiante.materias} - Estado: Inscrito\n"
@@ -501,7 +522,7 @@ class VentanaInscripcion(tk.Toplevel):
         with open("tickets.txt", "w", encoding="utf-8") as f:
             f.writelines(nuevas_lineas)
 
-        tk.messagebox.showinfo("Éxito", f"Estudiante {estudiante.nombre} inscrito correctamente.")
+        messagebox.showinfo("Éxito", f"Estudiante {estudiante.nombre} inscrito correctamente.")
 
         self.tabla.delete(*self.tabla.get_children())
         self.cargar_datos_desde_archivo()
@@ -510,20 +531,20 @@ class VentanaInscripcion(tk.Toplevel):
         self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
 
       except Exception as e:
-        tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
+        messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
         
           
     def cancelar_inscripcion(self):
         cedula = self.entradas["cedula"].get().strip()
 
         if not cedula:
-            tk.messagebox.showerror("Error", "No hay estudiante seleccionado para cancelar.")
+            messagebox.showerror("Error", "No hay estudiante seleccionado para cancelar.")
             return
         try:
             with open("tickets.txt", "r", encoding="utf-8") as f:
                 lineas = f.readlines()
         except FileNotFoundError:
-            tk.messagebox.showerror("Error", "No se encontró el archivo tickets.txt.")
+            messagebox.showerror("Error", "No se encontró el archivo tickets.txt.")
             return
         pendientes = []
         inscritos = []
@@ -559,7 +580,10 @@ class VentanaInscripcion(tk.Toplevel):
                 for parte in partes:
                     if "Materias :" in parte:
                         materias_str = parte.replace("Materias :", "").strip()
-                        materias = eval(materias_str)  # Convertir string de lista a lista real
+                        try:
+                            materias = ast.literal_eval(materias_str)  # Safe conversion from string to list
+                        except Exception:
+                            materias = []
                         break
 
                 if estado.lower() == "inscrito":
@@ -574,7 +598,7 @@ class VentanaInscripcion(tk.Toplevel):
                 inscritos.append(linea + "\n")
 
         if estudiante_cancelado is None:
-            tk.messagebox.showerror("Error", f"No se encontró un estudiante con cédula {cedula}.")
+            messagebox.showerror("Error", f"No se encontró un estudiante con cédula {cedula}.")
             return
 
         # Si el estudiante ya era pendiente, lo quitamos de la lista de pendientes
@@ -602,10 +626,10 @@ class VentanaInscripcion(tk.Toplevel):
                 f.writelines(nuevas_lineas)
 
             if es_pendiente:
-                tk.messagebox.showinfo("Éxito",
+                messagebox.showinfo("Éxito",
                                        "Estudiante pendiente reprogramado. Se ha movido al final de la lista de pendientes.")
             else:
-                tk.messagebox.showinfo("Éxito",
+                messagebox.showinfo("Éxito",
                                        "Inscripción cancelada. El estudiante ha sido movido al final de la lista de pendientes.")
 
             # Actualizar la interfaz
@@ -615,16 +639,16 @@ class VentanaInscripcion(tk.Toplevel):
             self.actualizar_campos_desde_archivo()
             self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children()) 
         except Exception as e:
-            tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
+            messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
             
     def mostrar_historial(self):
         historial = self.pila_cambios.obtener_contenido()
         if not historial:
-            tk.messagebox.showinfo("Historial", "No hay cambios registrados.")
+            messagebox.showinfo("Historial", "No hay cambios registrados.")
             return
 
         historial_str = "Historial de Cambios:\n"
         for cambio in reversed(historial):  # Muestra el historial del más reciente al más antiguo
-            historial_str += f"{cambio['accion'].capitalize()}: {cambio['materia']} ({cambio['estudiante']}) - {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(cambio['timestamp']))}\n"
+            historial_str += f"{cambio['accion'].capitalize()}: {cambio.get('materia', '')} ({cambio.get('nombre', '')}) - {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(cambio['timestamp']))}\n"
 
-        tk.messagebox.showinfo("Historial", historial_str)
+        messagebox.showinfo("Historial", historial_str)

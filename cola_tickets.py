@@ -5,12 +5,31 @@ from Estudiante import Estudiante
 from lista_inscripcion import VentanaInscripcion
 from tkinter import messagebox
 
+# --- Copied center_window helper here to avoid circular import ---
+def center_window(win, width=None, height=None):
+    win.update_idletasks()
+    if width is None or height is None:
+        win_width = win.winfo_width()
+        win_height = win.winfo_height()
+        if win_width == 1 or win_height == 1:  # Not yet drawn
+            win_width = win.winfo_reqwidth()
+            win_height = win.winfo_reqheight()
+    else:
+        win_width = width
+        win_height = height
+    screen_width = win.winfo_screenwidth()
+    screen_height = win.winfo_screenheight()
+    x = (screen_width // 2) - (win_width // 2)
+    y = (screen_height // 2) - (win_height // 2)
+    win.geometry(f"{win_width}x{win_height}+{x}+{y}")
+
 
 def VentanaTickets():
     ventana = tk.Toplevel()
     ventana.title("Cola de Espera")
     ventana.geometry("400x400")
     ventana.resizable(0,0) # Impidiendo redimensión de la ventana
+    center_window(ventana, 400, 400)
 
     # Crear una instancia de Cola
     cola = Cola()
