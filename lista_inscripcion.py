@@ -154,74 +154,108 @@ class VentanaInscripcion(tk.Toplevel):
         self.lista_tickets = Lista() 
         
         self.autocompletar_desde_tabla(self.tabla)
+        self.entry_buscar.bind("<KeyRelease>", self.buscar_por_cedula)
+    
+    def buscar_por_cedula(self, event=None):
+        texto = self.entry_buscar.get().strip()
+        if not texto:
+            self.cargar_datos_desde_archivo()
+            return
 
-def abrir_ventana_ingresados(self):
+        texto = texto.lower()
+        for item in self.tabla.get_children():
+            self.tabla.delete(item)
+
+        try:
+            with open("tickets.txt", "r", encoding="utf-8") as f:
+                for linea in f:
+                    partes = linea.strip().split(" - ")
+                    if len(partes) < 4:
+                        continue
+
+                    cedula = partes[0].strip()
+                    nombre = partes[1].strip()
+                    carrera = partes[2].strip()
+                    prioridad = partes[3].replace("Prioridad:", "").strip()
+                    
+                    estado = "Desconocido"
+                    for parte in partes:
+                        if "Estado:" in parte:
+                            estado = parte.replace("Estado:", "").strip()
+                            break
+
+                    if texto in cedula.lower():
+                        self.tabla.insert("", "end", values=(cedula, nombre, carrera, prioridad, estado))
+        except Exception as e:
+            print(f"Error al filtrar por cédula: {e}")
+   
+    def abrir_ventana_ingresados(self):
     # Crear una nueva ventana para mostrar los inscritos
-    ventana_ingresados = tk.Toplevel(self)
-    ventana_ingresados.title("Lista de Ingresados")
-    ventana_ingresados.geometry("600x400")
+     ventana_ingresados = tk.Toplevel(self)
+     ventana_ingresados.title("Lista de Ingresados")
+     ventana_ingresados.geometry("600x400")
     
     # Crear un Treeview para mostrar los inscritos
-    columnas = ("cedula", "nombre", "carrera", "prioridad")
-    tabla_inscritos = ttk.Treeview(ventana_ingresados, columns=columnas, show="headings")
+     columnas = ("cedula", "nombre", "carrera", "prioridad")
+     tabla_inscritos = ttk.Treeview(ventana_ingresados, columns=columnas, show="headings")
 
-    for col in columnas:
+     for col in columnas:
         tabla_inscritos.heading(col, text=col.capitalize())
         tabla_inscritos.column(col, width=100)
 
-    tabla_inscritos.pack(fill="both", expand=True)
+     tabla_inscritos.pack(fill="both", expand=True)
 
     # Botón para cerrar la ventana
-    btn_cerrar = tk.Button(ventana_ingresados, text="Cerrar", command=ventana_ingresados.destroy)
-    btn_cerrar.pack(pady=10)
+     btn_cerrar = tk.Button(ventana_ingresados, text="Cerrar", command=ventana_ingresados.destroy)
+     btn_cerrar.pack(pady=10)
 
     # Obtener las carreras registradas
-    carreras_registradas = set()
-    p = self.lista_inscritos.Primero
-    while p is not None:
+     carreras_registradas = set()
+     p = self.lista_inscritos.Primero
+     while p is not None:
         carreras_registradas.add(p.info.carrera)
         p = p.prox
 
-    lista_carreras = sorted(carreras_registradas)
-    lista_carreras.insert(0, "Todas las carreras")
+     lista_carreras = sorted(carreras_registradas)
+     lista_carreras.insert(0, "Todas las carreras")
 
-    kfccombobox_filtro = ttk.Combobox(ventana_ingresados, values=lista_carreras, state="readonly")
-    kfccombobox_filtro.pack(pady=5)
-    kfccombobox_filtro.set("Todas las carreras")
+     kfccombobox_filtro = ttk.Combobox(ventana_ingresados, values=lista_carreras, state="readonly")
+     kfccombobox_filtro.pack(pady=5)
+     kfccombobox_filtro.set("Todas las carreras")
 
-    kfccombobox_filtro.bind("<<ComboboxSelected>>", lambda e: self.filtrar_estudiantes_por_carrera(tabla_inscritos, kfccombobox_filtro.get()))
+     kfccombobox_filtro.bind("<<ComboboxSelected>>", lambda e: self.filtrar_estudiantes_por_carrera(tabla_inscritos, kfccombobox_filtro.get()))
 
-    self.filtrar_estudiantes_por_carrera(tabla_inscritos, "Todas las carreras")
+     self.filtrar_estudiantes_por_carrera(tabla_inscritos, "Todas las carreras")
 
-def obtener_inscritos(self):
-    inscritos = []
-    p = self.lista_inscritos.Primero
-    while p is not None:
+    def obtener_inscritos(self):
+     inscritos = []
+     p = self.lista_inscritos.Primero
+     while p is not None:
         if p.info.estado.lower() == "inscrito":
             inscritos.append((p.info.cedula, p.info.nombre, p.info.carrera, p.info.prioridad))
         p = p.prox
-    return inscritos
+     return inscritos
 
-def filtrar_estudiantes_por_carrera(self, tabla_inscritos, carrera_seleccionada):
-    # Limpiar la tabla antes de insertar nuevos datos
-    for item in tabla_inscritos.get_children():
+    def filtrar_estudiantes_por_carrera(self, tabla_inscritos, carrera_seleccionada):
+     # Limpiar la tabla antes de insertar nuevos datos
+     for item in tabla_inscritos.get_children():
         tabla_inscritos.delete(item)
 
     # Obtener lista de estudiantes inscritos
-    lista_inscritos = self.obtener_inscritos()
+     lista_inscritos = self.obtener_inscritos()
 
     # Filtrar por carrera
-    for estudiante in lista_inscritos:
+     for estudiante in lista_inscritos:
         if carrera_seleccionada == "Todas las carreras" or estudiante[2] == carrera_seleccionada:
             tabla_inscritos.insert("", "end", values=estudiante)
 
-def filtrar_estudiantes_por_carrera(self, tabla_inscritos, carrera_seleccionada):
-    # Limpiar la tabla antes de insertar nuevos datos
-    for item in tabla_inscritos.get_children():
+    def filtrar_estudiantes_por_carrera(self, tabla_inscritos, carrera_seleccionada):
+     # Limpiar la tabla antes de insertar nuevos datos
+     for item in tabla_inscritos.get_children():
         tabla_inscritos.delete(item)
 
-    p = self.lista_inscritos.Primero
-    while p is not None:
+     p = self.lista_inscritos.Primero
+     while p is not None:
         if carrera_seleccionada == "Todas las carreras" or p.info.carrera == carrera_seleccionada:
             tabla_inscritos.insert("", "end", values=(p.info.cedula, p.info.nombre, p.info.carrera, p.info.prioridad))
         p = p.prox
