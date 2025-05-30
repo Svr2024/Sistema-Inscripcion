@@ -1,3 +1,5 @@
+import time 
+from pila_materias import Pila  
 import tkinter as tk
 from tkinter import ttk
 from pila_materias import VentanaMaterias
@@ -9,6 +11,7 @@ class VentanaInscripcion(tk.Toplevel):
         super().__init__(master)
         self.title("Lista de Inscripción")
         self.geometry("850x650")
+        self.pila_cambios = Pila()
 
         contenedor = tk.Canvas(self)
         scrollbar = tk.Scrollbar(self, orient="vertical", command=contenedor.yview)
@@ -21,7 +24,6 @@ class VentanaInscripcion(tk.Toplevel):
 
         contenedor.create_window((0, 0), window=self.frame_contenido, anchor="nw")
         contenedor.configure(yscrollcommand=scrollbar.set)
-
         # --------------------------
         # Turno
         # --------------------------
@@ -137,6 +139,9 @@ class VentanaInscripcion(tk.Toplevel):
         
         btn_limpiar = tk.Button(frame_botones, text="Limpiar campos", command=self.limpiar_campos)
         btn_limpiar.pack(side=tk.LEFT, padx=5)
+        
+        btn_mostrar_historial = tk.Button(frame_botones, text="Mostrar Historial", command=self.mostrar_historial)
+        btn_mostrar_historial.pack(side=tk.LEFT, padx=5)
 
         # --------------------------
         # Botón: Historial de Ingresados
@@ -372,6 +377,16 @@ class VentanaInscripcion(tk.Toplevel):
       nueva_linea = f"{estudiante.cedula} - {estudiante.nombre} - {estudiante.carrera} - Prioridad: {estudiante.prioridad} - Materias : {estudiante.materias} - Estado: Inscrito\n"
       nuevas_lineas.append(nueva_linea)
 
+      cambio = {
+            'cedula': cedula,
+            'nombre': nombre,
+            'carrera': carrera,
+            'materias': materias,
+            'accion': 'inscripcion',
+            'timestamp': time.time()
+        }
+      self.pila_cambios.Insertar(cambio)  # Usas el metodo insertar de tu pila
+      print(f"Cambio registrado: Inscripción de {nombre} ({cedula})")
       try:
         with open("tickets.txt", "w", encoding="utf-8") as f:
             f.writelines(nuevas_lineas)
@@ -394,14 +409,12 @@ class VentanaInscripcion(tk.Toplevel):
         if not cedula:
             tk.messagebox.showerror("Error", "No hay estudiante seleccionado para cancelar.")
             return
-
         try:
             with open("tickets.txt", "r", encoding="utf-8") as f:
                 lineas = f.readlines()
         except FileNotFoundError:
             tk.messagebox.showerror("Error", "No se encontró el archivo tickets.txt.")
             return
-
         pendientes = []
         inscritos = []
         estudiante_cancelado = None
@@ -463,6 +476,16 @@ class VentanaInscripcion(tk.Toplevel):
         # 2. Estudiante cancelado (al final de pendientes)
         # 3. Inscritos originales
         nuevas_lineas = pendientes + [estudiante_cancelado] + inscritos
+        cambio = {
+            'cedula': cedula,
+            'nombre': nombre,
+            'carrera': carrera,
+            'materias': materias,
+            'accion': 'cancelacion',
+            'timestamp': time.time()
+        }
+        self.pila_cambios.Insertar(cambio)  # Usas el metodo insertar de tu pila
+        print(f"Cambio registrado: Cancelación de {nombre} ({cedula})")
 
         try:
             with open("tickets.txt", "w", encoding="utf-8") as f:
@@ -480,7 +503,18 @@ class VentanaInscripcion(tk.Toplevel):
             self.cargar_datos_desde_archivo()
             self.actualizar_turno()
             self.actualizar_campos_desde_archivo()
-            self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
-
+            self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children()) 
         except Exception as e:
             tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
+            
+    def mostrar_historial(self):
+        historial = self.pila_cambios.obtener_contenido()
+        if not historial:
+            tk.messagebox.showinfo("Historial", "No hay cambios registrados.")
+            return
+
+        historial_str = "Historial de Cambios:\n"
+        for cambio in reversed(historial):  # Muestra el historial del más reciente al más antiguo
+            historial_str += f"{cambio['accion'].capitalize()}: {cambio['materia']} ({cambio['estudiante']}) - {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(cambio['timestamp']))}\n"
+
+        tk.messagebox.showinfo("Historial", historial_str)
