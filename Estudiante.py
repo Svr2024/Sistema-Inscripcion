@@ -5,7 +5,6 @@ class Estudiante:
         self.carrera = carrera
         self.prioridad = prioridad
         self.materias = materias
-        
         self.estado = estado
 
     def get_info(self):
@@ -13,3 +12,13 @@ class Estudiante:
 
     def __str__(self):
         return self.get_info()
+    
+    def to_dict(self):
+        return {
+            'cedula': self.cedula,
+            'nombre': self.nombre,
+            'carrera': self.carrera,
+            'prioridad': self.prioridad,
+            'materias': self.materias,
+            'estado': self.estado
+        }

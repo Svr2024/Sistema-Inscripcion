@@ -1,12 +1,9 @@
-import time 
 from pila_materias import Pila  
 import tkinter as tk
 from tkinter import ttk
 from pila_materias import VentanaMaterias
-from Lista import Lista,Nodo
-from Estudiante import Estudiante
-import ast
-from tkinter import messagebox
+from Lista import Lista
+from dbJson import Db_json
 
 # Helper to center a window on the screen
 def center_window(win, width=None, height=None):
@@ -45,6 +42,7 @@ class VentanaInscripcion(tk.Toplevel):
 
         contenedor.create_window((0, 0), window=self.frame_contenido, anchor="nw")
         contenedor.configure(yscrollcommand=scrollbar.set)
+
         # --------------------------
         # Turno
         # --------------------------
@@ -76,23 +74,24 @@ class VentanaInscripcion(tk.Toplevel):
 
         columnas = ("cedula", "nombre", "carrera", "prioridad", "estado")
         self.tabla = ttk.Treeview(
-         frame_tabla,
-         columns=columnas,
-         show="headings",
-         height=8,
-         yscrollcommand=scrollbar_tabla.set
-         )
+            frame_tabla,
+            columns=columnas,
+            show="headings",
+            height=8,
+            yscrollcommand=scrollbar_tabla.set
+            )
         for col in columnas:
-         self.tabla.heading(col, text=col.capitalize())
-         self.tabla.column(col, width=150)
+            self.tabla.heading(col, text=col.capitalize())
+            self.tabla.column(col, width=150)
 
         self.tabla.pack(side="left", fill="both", expand=True)
         scrollbar_tabla.config(command=self.tabla.yview)
-
+        
+        # Cargar datos desde archivo estudiante.json
+        self.cargar_datos_desde_archivo()
         
         self.tabla.bind("<<TreeviewSelect>>", lambda e: self.autocompletar_desde_tabla(self.tabla))
-         # Cargar datos desde archivo tickets.txt
-        self.cargar_datos_desde_archivo()
+        
 
         # --------------------------
         # Campos de entrada
@@ -160,9 +159,6 @@ class VentanaInscripcion(tk.Toplevel):
         
         btn_limpiar = tk.Button(frame_botones, text="Limpiar campos", command=self.limpiar_campos)
         btn_limpiar.pack(side=tk.LEFT, padx=5)
-        
-        btn_mostrar_historial = tk.Button(frame_botones, text="Mostrar Historial", command=self.mostrar_historial)
-        btn_mostrar_historial.pack(side=tk.LEFT, padx=5)
 
         # --------------------------
         # Botón: Historial de Ingresados
@@ -176,9 +172,8 @@ class VentanaInscripcion(tk.Toplevel):
         contenedor.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
-        # Lista enlazada solo para operaciones en memoria durante la sesión.
-        # No se usa para almacenamiento persistente.
         self.lista_inscritos = Lista()
+        self.lista_tickets = Lista() 
         
         self.autocompletar_desde_tabla(self.tabla)
         self.entry_buscar.bind("<KeyRelease>", self.buscar_por_cedula)
@@ -194,98 +189,73 @@ class VentanaInscripcion(tk.Toplevel):
             self.tabla.delete(item)
 
         try:
-            with open("tickets.txt", "r", encoding="utf-8") as f:
-                for linea in f:
-                    partes = linea.strip().split(" - ")
-                    if len(partes) < 4:
-                        continue
+            estudiantes = Db_json.cargar_estudiantes_json("estudiantes.json")
 
-                    cedula = partes[0].strip()
-                    nombre = partes[1].strip()
-                    carrera = partes[2].strip()
-                    prioridad = partes[3].replace("Prioridad:", "").strip()
-                    
-                    estado = "Desconocido"
-                    for parte in partes:
-                        if "Estado:" in parte:
-                            estado = parte.replace("Estado:", "").strip()
-                            break
+            busqueda = list(filter( lambda estudiante: texto in estudiante.cedula , estudiantes))
 
-                    if texto in cedula.lower():
-                        self.tabla.insert("", "end", values=(cedula, nombre, carrera, prioridad, estado))
+            for estudiante in busqueda:
+                self.tabla.insert("", "end", values=(estudiante.cedula, estudiante.nombre, estudiante.carrera, estudiante.prioridad, estudiante.estado))
+
         except Exception as e:
             print(f"Error al filtrar por cédula: {e}")
-   
+
     def abrir_ventana_ingresados(self):
     # Crear una nueva ventana para mostrar los inscritos
-     ventana_ingresados = tk.Toplevel(self)
-     ventana_ingresados.title("Lista de Ingresados")
-     ventana_ingresados.geometry("600x400")
+        ventana_ingresados = tk.Toplevel(self)
+        ventana_ingresados.title("Lista de Ingresados")
+        ventana_ingresados.geometry("600x400")
     
     # Crear un Treeview para mostrar los inscritos
-     columnas = ("cedula", "nombre", "carrera", "prioridad")
-     tabla_inscritos = ttk.Treeview(ventana_ingresados, columns=columnas, show="headings")
+        columnas = ("cedula", "nombre", "carrera", "prioridad")
+        tabla_inscritos = ttk.Treeview(ventana_ingresados, columns=columnas, show="headings")
 
-     for col in columnas:
-        tabla_inscritos.heading(col, text=col.capitalize())
-        tabla_inscritos.column(col, width=100)
+        for col in columnas:
+            tabla_inscritos.heading(col, text=col.capitalize())
+            tabla_inscritos.column(col, width=100)
 
-     tabla_inscritos.pack(fill="both", expand=True)
+        tabla_inscritos.pack(fill="both", expand=True)
 
     # Botón para cerrar la ventana
-     btn_cerrar = tk.Button(ventana_ingresados, text="Cerrar", command=ventana_ingresados.destroy)
-     btn_cerrar.pack(pady=10)
+        btn_cerrar = tk.Button(ventana_ingresados, text="Cerrar", command=ventana_ingresados.destroy)
+        btn_cerrar.pack(pady=10)
 
     # Obtener las carreras registradas
-     carreras_registradas = set()
-     p = self.lista_inscritos.Primero
-     while p is not None:
-        carreras_registradas.add(p.info.carrera)
-        p = p.prox
+        carreras_registradas = set()
+        p = self.lista_inscritos.Primero
+        while p is not None:
+            carreras_registradas.add(p.info.carrera)
+            p = p.prox
 
-     lista_carreras = sorted(carreras_registradas)
-     lista_carreras.insert(0, "Todas las carreras")
+        lista_carreras = sorted(carreras_registradas)
+        lista_carreras.insert(0, "Todas las carreras")
 
-     kfccombobox_filtro = ttk.Combobox(ventana_ingresados, values=lista_carreras, state="readonly")
-     kfccombobox_filtro.pack(pady=5)
-     kfccombobox_filtro.set("Todas las carreras")
+        kfccombobox_filtro = ttk.Combobox(ventana_ingresados, values=lista_carreras, state="readonly")
+        kfccombobox_filtro.pack(pady=5)
+        kfccombobox_filtro.set("Todas las carreras")
 
-     kfccombobox_filtro.bind("<<ComboboxSelected>>", lambda e: self.filtrar_estudiantes_por_carrera(tabla_inscritos, kfccombobox_filtro.get()))
+        kfccombobox_filtro.bind("<<ComboboxSelected>>", lambda e: self.filtrar_estudiantes_por_carrera(tabla_inscritos, kfccombobox_filtro.get()))
 
-     self.filtrar_estudiantes_por_carrera(tabla_inscritos, "Todas las carreras")
+        self.filtrar_estudiantes_por_carrera(tabla_inscritos, "Todas las carreras")
 
     def obtener_inscritos(self):
-     inscritos = []
-     p = self.lista_inscritos.Primero
-     while p is not None:
-        if p.info.estado.lower() == "inscrito":
-            inscritos.append((p.info.cedula, p.info.nombre, p.info.carrera, p.info.prioridad))
-        p = p.prox
-     return inscritos
+        inscritos = []
+        p = self.lista_inscritos.Primero
+        while p is not None:
+            if p.info.estado.lower() == "inscrito":
+                inscritos.append((p.info.cedula, p.info.nombre, p.info.carrera, p.info.prioridad))
+            p = p.prox
+        return inscritos
 
     def filtrar_estudiantes_por_carrera(self, tabla_inscritos, carrera_seleccionada):
-     # Limpiar la tabla antes de insertar nuevos datos
-     for item in tabla_inscritos.get_children():
-        tabla_inscritos.delete(item)
+        # Limpiar la tabla antes de insertar nuevos datos
+        for item in tabla_inscritos.get_children():
+            tabla_inscritos.delete(item)
 
-    # Obtener lista de estudiantes inscritos
-     lista_inscritos = self.obtener_inscritos()
-
-    # Filtrar por carrera
-     for estudiante in lista_inscritos:
-        if carrera_seleccionada == "Todas las carreras" or estudiante[2] == carrera_seleccionada:
-            tabla_inscritos.insert("", "end", values=estudiante)
-
-    def filtrar_estudiantes_por_carrera(self, tabla_inscritos, carrera_seleccionada):
-     # Limpiar la tabla antes de insertar nuevos datos
-     for item in tabla_inscritos.get_children():
-        tabla_inscritos.delete(item)
-
-     p = self.lista_inscritos.Primero
-     while p is not None:
-        if carrera_seleccionada == "Todas las carreras" or p.info.carrera == carrera_seleccionada:
-            tabla_inscritos.insert("", "end", values=(p.info.cedula, p.info.nombre, p.info.carrera, p.info.prioridad))
-        p = p.prox
+        p = self.lista_inscritos.Primero
+        while p is not None:
+            if carrera_seleccionada == "Todas las carreras" or p.info.carrera == carrera_seleccionada:
+                tabla_inscritos.insert("", "end", values=(p.info.cedula, p.info.nombre, p.info.carrera, p.info.prioridad))
+            p = p.prox
 
     def abrir_ventana_materias(self):
         
@@ -299,356 +269,244 @@ class VentanaInscripcion(tk.Toplevel):
             from pila_materias import MATERIAS_CREDITOS  
             uc = MATERIAS_CREDITOS.get(materia, 0)
             self.tabla_materias_confirmadas.insert("", "end", values=(materia, uc))
-    def cargar_datos_desde_archivo(self, archivo="tickets.txt"):
-     try:
-        pendientes = []
-        inscritos = []
 
-        with open(archivo, "r", encoding="utf-8") as f:
-            for linea in f:
-                linea = linea.strip()
-                if not linea:
-                    continue
+    def cargar_datos_desde_archivo(self, archivo="estudiantes.json"):
+        try:
+            pendientes = []
+            inscritos = []
 
-                partes = linea.split(" - ")
-                if len(partes) < 4:
-                    continue
+            estudiantes = Db_json.cargar_estudiantes_json(archivo)
+            
+            inscritos = list(filter(lambda estudiante: estudiante.estado.lower() == "inscrito", estudiantes))
+            
+            pendientes = list(filter(lambda estudiante: estudiante.estado.lower() != "inscrito", estudiantes))
+            
 
-                cedula = partes[0].strip()
-                nombre = partes[1].strip()
-                carrera = partes[2].strip()
-                prioridad = partes[3].replace("Prioridad:", "").strip()
+            for item in self.tabla.get_children():
+                self.tabla.delete(item)
 
-                estado = "Desconocido"
-                for parte in partes:
-                    if "Estado:" in parte:
-                        estado = parte.replace("Estado:", "").strip()
-                        break
+            # Insertar primero pendientes, luego inscritos
+            for reg in pendientes + inscritos:
+                self.tabla.insert("", "end", values=[reg.cedula,reg.nombre, reg.carrera, reg.prioridad, reg.estado])
 
-                registro = (cedula, nombre, carrera, prioridad, estado)
+        except FileNotFoundError:
+            print(f"No se encontró el archivo {archivo}")
+        except Exception as e:
+            print(f"Error leyendo {archivo}: {e}")
 
-                if estado.lower() == "inscrito":
-                    inscritos.append(registro)
-                else:
-                    pendientes.append(registro)
-
-        for item in self.tabla.get_children():
-            self.tabla.delete(item)
-
-        # Insertar primero pendientes, luego inscritos
-        for reg in pendientes + inscritos:
-            self.tabla.insert("", "end", values=reg)
-
-     except FileNotFoundError:
-          messagebox.showerror("Error", f"No se encontró el archivo {archivo}")
-     except Exception as e:
-         messagebox.showerror("Error", f"Error leyendo {archivo}: {e}")
-         
 
     def limpiar_campos(self):
         for entry in self.entradas.values():
             entry.delete(0, tk.END)
+        self.entry_buscar.delete(0, tk.END)
         self.tabla.selection_set('')
-        self.actualizar_campos_desde_archivo()
-         
+        self.cargar_datos_desde_archivo()
+        self.autocompletar_desde_tabla(self.tabla)
+
+
     def autocompletar_desde_tabla(self, tree):
         selected = tree.selection()
-        items = tree.get_children()
         if selected:
             item = tree.item(selected[0])
             for key, value in zip(self.entradas.keys(), item["values"]):
                 self.entradas[key].delete(0, tk.END)
                 self.entradas[key].insert(0, value)
-        elif items:
-            # Si no hay selección pero la tabla tiene elementos, autocompletar con el primero
-            item = tree.item(items[0])
+        else:
+            item = tree.item('I001')
             for key, value in zip(self.entradas.keys(), item["values"]):
                 self.entradas[key].delete(0, tk.END)
                 self.entradas[key].insert(0, value)
-        else:
-            # Si la tabla está vacía, limpiar los campos
-            for entry in self.entradas.values():
-                entry.delete(0, tk.END)
-            
+
     # Actualizar turno
-    def actualizar_turno(self, archivo="tickets.txt"):
-     try:
-        with open(archivo, "r", encoding="utf-8") as f:
-            for linea in f:
-                linea = linea.strip()
-                if not linea:
-                    continue
-                partes = linea.split(" - ")
-                if len(partes) < 4:
-                    continue
-
-                cedula = partes[0].strip()
-
-                estado = "Desconocido"
-                for parte in partes:
-                    if "Estado:" in parte:
-                        estado = parte.replace("Estado:", "").strip()
-                        break
-
-                if estado.lower() != "inscrito":
-                    self.textturno.config(state="normal")
-                    self.textturno.delete(0, tk.END)
-                    self.textturno.insert(0, cedula)
-                    self.textturno.config(state="readonly")
-                    break  # Solo el primer pendiente
+    def actualizar_turno(self, archivo="estudiantes.json"):
+        try:
+            estudiantes = Db_json.cargar_estudiantes_json(archivo)
+            
+            pendientes = list(filter(lambda estudiante: estudiante.estado == "pendiente", estudiantes))
+            
+            if pendientes:
+                estudiante = pendientes[0]
+                self.textturno.config(state="normal")
+                self.textturno.delete(0, tk.END)
+                self.textturno.insert(0, estudiante.cedula)
+                self.textturno.config(state="readonly")
             else:
-                # Si no hay pendientes, se borra el campo porque ya se atendieron  todos
                 self.textturno.config(state="normal")
                 self.textturno.delete(0, tk.END)
                 self.textturno.insert(0, "Sin pendientes")
                 self.textturno.config(state="readonly")
-     except FileNotFoundError:
-        messagebox.showerror("Error", f"No se encontró el archivo {archivo}")
-     except Exception as e:
-        messagebox.showerror("Error", f"Error leyendo {archivo}: {e}")
+        except FileNotFoundError:
+            print(f"No se encontró el archivo {archivo}")
+        except Exception as e:
+            print(f"Error leyendo {archivo}: {e}")
 
         
-    def actualizar_campos_desde_archivo(self, archivo="tickets.txt"):
-     try:
-        with open(archivo, "r", encoding="utf-8") as f:
-            for linea in f:
-                linea = linea.strip()
-                if not linea:
-                    continue
-                partes = linea.split(" - ")
-                if len(partes) < 4:
-                    continue
+    def actualizar_campos_desde_archivo(self, archivo="estudiantes.json"):
+        try:
+            estudiantes = Db_json.cargar_estudiantes_json(archivo)
+            
+            pendientes = list(filter(lambda estudiante: estudiante.estado == "pendiente", estudiantes))
+            
+            if pendientes:
+                estudiante = pendientes[0]
+                self.entradas["cedula"].delete(0, tk.END)
+                self.entradas["cedula"].insert(0, estudiante.cedula)
 
-                cedula = partes[0].strip()
-                nombre = partes[1].strip()
-                carrera = partes[2].strip()
-                prioridad = partes[3].replace("Prioridad:", "").strip()
+                self.entradas["nombre"].delete(0, tk.END)
+                self.entradas["nombre"].insert(0, estudiante.nombre)
 
-                estado = "Desconocido"
-                for parte in partes:
-                    if "Estado:" in parte:
-                        estado = parte.replace("Estado:", "").strip()
-                        break
+                self.entradas["carrera"].delete(0, tk.END)
+                self.entradas["carrera"].insert(0, estudiante.carrera)
 
-                # Solo llenamos campos si el estado es Pendiente
-                if estado.lower() != "inscrito":
-                    self.entradas["cedula"].delete(0, tk.END)
-                    self.entradas["cedula"].insert(0, cedula)
-
-                    self.entradas["nombre"].delete(0, tk.END)
-                    self.entradas["nombre"].insert(0, nombre)
-
-                    self.entradas["carrera"].delete(0, tk.END)
-                    self.entradas["carrera"].insert(0, carrera)
-
-                    self.entradas["prioridad"].delete(0, tk.END)
-                    self.entradas["prioridad"].insert(0, prioridad)
-                    break  # Solo el primer PENDIENTE
-     except FileNotFoundError:
-        messagebox.showerror("Error", f"No se encontró el archivo {archivo}")
-     except Exception as e:
-        messagebox.showerror("Error", f"Error leyendo {archivo}: {e}")
+                self.entradas["prioridad"].delete(0, tk.END)
+                self.entradas["prioridad"].insert(0, estudiante.prioridad)
+                
+        except FileNotFoundError:
+            print(f"No se encontró el archivo {archivo}")
+        except Exception as e:
+            print(f"Error leyendo {archivo}: {e}")
 
     def inscribir_alumno(self):
-      cedula = self.entradas["cedula"].get().strip()
-      nombre = self.entradas["nombre"].get().strip()
-      carrera = self.entradas["carrera"].get().strip()
-      prioridad = self.entradas["prioridad"].get().strip()
+        cedula = self.entradas["cedula"].get().strip()
+        nombre = self.entradas["nombre"].get().strip()
+        carrera = self.entradas["carrera"].get().strip()
+        prioridad = self.entradas["prioridad"].get().strip()
 
-      if not all([cedula, nombre, carrera, prioridad]):
-        messagebox.showerror("Error", "Todos los campos deben estar llenos.")
-        return
+        if not all([cedula, nombre, carrera, prioridad]):
+            tk.messagebox.showerror("Error", "Todos los campos deben estar llenos.")
+            return
 
-     # Obtener materias confirmadas
-      materias = []
-      for item in self.tabla_materias_confirmadas.get_children():
-        materia = self.tabla_materias_confirmadas.item(item, "values")[0]
-        materias.append(materia)
+    # Obtener materias confirmadas
+        materias = []
+        for item in self.tabla_materias_confirmadas.get_children():
+            materia = self.tabla_materias_confirmadas.item(item, "values")[0]
+            materias.append(materia)
 
     #  ojito no permitir inscripción sin materias
-      if not materias:
-        messagebox.showerror("Error", "Debe confirmar al menos una materia para poder inscribir al estudiante.")
-        return
+        if not materias:
+            tk.messagebox.showerror("Error", "Debe confirmar al menos una materia para poder inscribir al estudiante.")
+            return
 
-      try:
-        with open("tickets.txt", "r", encoding="utf-8") as f:
-            lineas = f.readlines()
-      except FileNotFoundError:
-        messagebox.showerror("Error", "No se encontró el archivo tickets.txt.")
-        return
+        try:
+            estudiantes = Db_json.cargar_estudiantes_json("estudiantes.json")
+        except FileNotFoundError:
+            tk.messagebox.showerror("Error", "No se encontró el archivo estudiantes.json.")
+            return
 
-      encontrado = False
-      nuevas_lineas = []
-      for linea in lineas:
-        partes = linea.strip().split(" - ")
-        if partes and partes[0].strip() == cedula:
-            encontrado = True
-            continue
-        nuevas_lineas.append(linea)
+        estudiante_encontrado = None
+        for estudiante in estudiantes:
+            if estudiante.cedula == cedula:
+                estudiante_encontrado = estudiante
+                continue
 
-      if not encontrado:
-        messagebox.showerror("Error", f"No existe un ticket para la cédula {cedula}.")
-        return
+        if not estudiante_encontrado:
+            tk.messagebox.showerror("Error", f"No existe un ticket para la cédula {cedula}.")
+            return
 
-      estudiante = Estudiante(cedula, nombre, carrera, prioridad, materias, estado="Inscrito")
+        estudiante_encontrado.estado = "Inscrito"
+        estudiante_encontrado.materias = materias
+        
+        estudiantes_guardar = list()
+        for estudiante in estudiantes:
+            if estudiante.cedula == estudiante_encontrado.cedula:
+                estudiantes_guardar.append(estudiante_encontrado)
+            else:
+                estudiantes_guardar.append(estudiante)
+
 
     # Registrar en la lista 
-      if not self.lista_inscritos.Llena():
-        if self.lista_inscritos.Vacia():
-            self.lista_inscritos.InsComienzo(estudiante)
+        if not self.lista_inscritos.Llena():
+            if self.lista_inscritos.Vacia():
+                self.lista_inscritos.InsComienzo(estudiante_encontrado)
+            else:
+                p = self.lista_inscritos.Primero
+                while p.prox is not None:
+                    p = p.prox
+                self.lista_inscritos.InsDespues(p, estudiante_encontrado)
         else:
-            p = self.lista_inscritos.Primero
-            while p.prox is not None:
-                p = p.prox
-            self.lista_inscritos.InsDespues(p, estudiante)
-      else:
-        messagebox.showerror("Error", "No se pudo inscribir al estudiante, lista llena.")
-        return
+            tk.messagebox.showerror("Error", "No se pudo inscribir al estudiante, lista llena.")
+            return
 
-      nueva_linea = f"{estudiante.cedula} - {estudiante.nombre} - {estudiante.carrera} - Prioridad: {estudiante.prioridad} - Materias : {estudiante.materias} - Estado: Inscrito\n"
-      nuevas_lineas.append(nueva_linea)
+        try:
+            Db_json.guardar_estudiantes_json(estudiantes_guardar, "estudiantes.json")
 
-      cambio = {
-            'cedula': cedula,
-            'nombre': nombre,
-            'carrera': carrera,
-            'materias': materias,
-            'accion': 'inscripcion',
-            'timestamp': time.time()
-        }
-      self.pila_cambios.Insertar(cambio)  # Usas el metodo insertar de tu pila
-      print(f"Cambio registrado: Inscripción de {nombre} ({cedula})")
-      try:
-        with open("tickets.txt", "w", encoding="utf-8") as f:
-            f.writelines(nuevas_lineas)
+            tk.messagebox.showinfo("Éxito", f"Estudiante {estudiante_encontrado.nombre} inscrito correctamente.")
 
-        messagebox.showinfo("Éxito", f"Estudiante {estudiante.nombre} inscrito correctamente.")
+            self.tabla.delete(*self.tabla.get_children())
+            self.cargar_datos_desde_archivo()
+            self.actualizar_turno()
+            self.actualizar_campos_desde_archivo()
+            self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
 
-        self.tabla.delete(*self.tabla.get_children())
-        self.cargar_datos_desde_archivo()
-        self.actualizar_turno()
-        self.actualizar_campos_desde_archivo()
-        self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
+        except Exception as e:
+            tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
 
-      except Exception as e:
-        messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
-        
-          
+
     def cancelar_inscripcion(self):
         cedula = self.entradas["cedula"].get().strip()
 
         if not cedula:
-            messagebox.showerror("Error", "No hay estudiante seleccionado para cancelar.")
+            tk.messagebox.showerror("Error", "No hay estudiante seleccionado para cancelar.")
             return
+
         try:
-            with open("tickets.txt", "r", encoding="utf-8") as f:
-                lineas = f.readlines()
+            estudiantes = Db_json.cargar_estudiantes_json("estudiantes.json")
         except FileNotFoundError:
-            messagebox.showerror("Error", "No se encontró el archivo tickets.txt.")
+            tk.messagebox.showerror("Error", "No se encontró el archivo estudiantes.json.")
             return
+
         pendientes = []
         inscritos = []
         estudiante_cancelado = None
         es_pendiente = False
 
         # Separar los registros y encontrar el que se va a cancelar
-        for linea in lineas:
-            linea = linea.strip()
-            if not linea:
-                continue
-
-            partes = linea.split(" - ")
-            if len(partes) < 4:
-                continue
-
-            current_cedula = partes[0].strip()
-            estado = "Desconocido"
-            for parte in partes:
-                if "Estado:" in parte:
-                    estado = parte.replace("Estado:", "").strip()
-                    break
-
+        for estudiante in estudiantes:
             # Buscar el estudiante a cancelar
-            if current_cedula == cedula:
-                # Extraer información del estudiante
-                nombre = partes[1].strip()
-                carrera = partes[2].strip()
-                prioridad = partes[3].replace("Prioridad:", "").strip()
-
-                # Obtener materias si existen
-                materias = []
-                for parte in partes:
-                    if "Materias :" in parte:
-                        materias_str = parte.replace("Materias :", "").strip()
-                        try:
-                            materias = ast.literal_eval(materias_str)  # Safe conversion from string to list
-                        except Exception:
-                            materias = []
-                        break
-
-                if estado.lower() == "inscrito":
+            if estudiante.cedula == cedula:
+                
+                if estudiante.estado.lower() == "inscrito":
                     # Crear nuevo registro con estado pendiente
-                    estudiante_cancelado = f"{cedula} - {nombre} - {carrera} - Prioridad: {prioridad} - Materias : {materias} - Estado: Pendiente\n"
-                elif estado.lower() == "pendiente":
-                    estudiante_cancelado = linea + "\n"
+                    estudiante.estado = "pendiente"
+                elif estudiante.estado.lower() == "pendiente":
                     es_pendiente = True
-            elif estado.lower() == "pendiente":
-                pendientes.append(linea + "\n")
-            elif estado.lower() == "inscrito":
-                inscritos.append(linea + "\n")
+                
+                estudiante_cancelado = estudiante
+            elif estudiante.estado.lower() == "pendiente":
+                pendientes.append(estudiante)
+            elif estudiante.estado.lower() == "inscrito":
+                inscritos.append(estudiante)
 
         if estudiante_cancelado is None:
-            messagebox.showerror("Error", f"No se encontró un estudiante con cédula {cedula}.")
+            tk.messagebox.showerror("Error", f"No se encontró un estudiante con cédula {cedula}.")
             return
 
         # Si el estudiante ya era pendiente, lo quitamos de la lista de pendientes
         if es_pendiente:
-            pendientes = [p for p in pendientes if not p.startswith(cedula + " -")]
+            pendientes = [p for p in pendientes if not p.cedula == cedula]
 
         # Reconstruir el archivo:
         # 1. Pendientes originales (excepto el cancelado si era pendiente)
         # 2. Estudiante cancelado (al final de pendientes)
         # 3. Inscritos originales
-        nuevas_lineas = pendientes + [estudiante_cancelado] + inscritos
-        cambio = {
-            'cedula': cedula,
-            'nombre': nombre,
-            'carrera': carrera,
-            'materias': materias,
-            'accion': 'cancelacion',
-            'timestamp': time.time()
-        }
-        self.pila_cambios.Insertar(cambio)  # Usas el metodo insertar de tu pila
-        print(f"Cambio registrado: Cancelación de {nombre} ({cedula})")
+        estudiantes_actualizados = pendientes + [estudiante_cancelado] + inscritos
 
         try:
-            with open("tickets.txt", "w", encoding="utf-8") as f:
-                f.writelines(nuevas_lineas)
+            Db_json.guardar_estudiantes_json(estudiantes_actualizados, "estudiantes.json")
 
             if es_pendiente:
-                messagebox.showinfo("Éxito",
-                                       "Estudiante pendiente reprogramado. Se ha movido al final de la lista de pendientes.")
+                tk.messagebox.showinfo("Éxito",
+                                        "Estudiante pendiente reprogramado. Se ha movido al final de la lista de pendientes.")
             else:
-                messagebox.showinfo("Éxito",
-                                       "Inscripción cancelada. El estudiante ha sido movido al final de la lista de pendientes.")
+                tk.messagebox.showinfo("Éxito",
+                                        "Inscripción cancelada. El estudiante ha sido movido al final de la lista de pendientes.")
 
             # Actualizar la interfaz
             self.tabla.delete(*self.tabla.get_children())
             self.cargar_datos_desde_archivo()
             self.actualizar_turno()
             self.actualizar_campos_desde_archivo()
-            self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children()) 
+            self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
+
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
-            
-    def mostrar_historial(self):
-        historial = self.pila_cambios.obtener_contenido()
-        if not historial:
-            messagebox.showinfo("Historial", "No hay cambios registrados.")
-            return
-
-        historial_str = "Historial de Cambios:\n"
-        for cambio in reversed(historial):  # Muestra el historial del más reciente al más antiguo
-            historial_str += f"{cambio['accion'].capitalize()}: {cambio.get('materia', '')} ({cambio.get('nombre', '')}) - {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(cambio['timestamp']))}\n"
-
-        messagebox.showinfo("Historial", historial_str)
+            tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")

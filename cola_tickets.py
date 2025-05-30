@@ -4,6 +4,7 @@ from colas import Cola
 from Estudiante import Estudiante
 from lista_inscripcion import VentanaInscripcion
 from tkinter import messagebox
+from dbJson import Db_json
 
 # --- Copied center_window helper here to avoid circular import ---
 def center_window(win, width=None, height=None):
@@ -35,30 +36,25 @@ def VentanaTickets():
     cola = Cola()
 
     def añadir_en_cola():
-     cedula = entrada_cedula.get()
-     nombre = entrada_nombre.get()
-     carrera = select_carrera.get()
-     prioridad = select_prioridad.get()
+        cedula = entrada_cedula.get()
+        nombre = entrada_nombre.get()
+        carrera = select_carrera.get()
+        prioridad = select_prioridad.get()
 
-     if cedula and nombre and carrera and prioridad:
-        estudiante = Estudiante(cedula, nombre, carrera, int(prioridad))
-        if cola.Insertar(estudiante):
-            print(f"Ticket creado para {nombre} ({cedula}) en {carrera} con prioridad {prioridad}.")
-            tk.messagebox.showinfo("Éxito", f"Ticket creado para {nombre} ({cedula}) en {carrera} con prioridad {prioridad}.")
-            #guardar_en_archivo(estudiante)
-            cola.MostrarContenido()
-            limpiar_entradas()
+        if cedula and nombre and carrera and prioridad:
+            estudiante = Estudiante(cedula, nombre, carrera, int(prioridad))
+            if cola.Insertar(estudiante):
+                print(f"Ticket creado para {nombre} ({cedula}) en {carrera} con prioridad {prioridad}.")
+                tk.messagebox.showinfo("Éxito", f"Ticket creado para {nombre} ({cedula}) en {carrera} con prioridad {prioridad}.")
+                #guardar_en_archivo(estudiante)
+                cola.MostrarContenido()
+                limpiar_entradas()
+            else:
+                print("¡La cola está llena (memoria llena)!")
+                tk.messagebox.showerror("Error", "¡La cola está llena (memoria llena)!")
         else:
-            print("¡La cola está llena (memoria llena)!")
-            tk.messagebox.showerror("Error", "¡La cola está llena (memoria llena)!")
-     else:
-        print("Por favor, complete todos los campos.")
-        messagebox.showwarning("Campos incompletos", "Por favor, complete todos los campos.")
-        
-    def guardar_en_archivo(estudiante):
-     with open("tickets.txt", "a", encoding="utf-8") as archivo:
-        archivo.write(estudiante.get_info() + "\n")
-
+            print("Por favor, complete todos los campos.")
+            messagebox.showwarning("Campos incompletos", "Por favor, complete todos los campos.")
 
 
     def limpiar_entradas():
@@ -69,17 +65,17 @@ def VentanaTickets():
 
     def ordenar_prioridad():
         if not cola.Vacia():
-            cola_aux = Cola()
             i = 1
+            cola_ordenada = Cola()
             while i <= 10:
                 p = cola.Frente
                 while p is not None:
                     if (p.info.prioridad == i):
-                        guardar_en_archivo(p.info)
-                        cola_aux.Insertar(p.info)
+                        cola_ordenada.Insertar(p.info)
                     p = p.prox
                 i += 1
-            cola_aux.MostrarContenido()
+            cola_ordenada.MostrarContenido()
+            Db_json.guardar_estudiantes_json(cola_ordenada.transformar_array(), "estudiantes.json")
             tk.messagebox.showinfo("Info", "Se ha reordenado por prioridad")
             ventana.destroy()
             VentanaInscripcion()

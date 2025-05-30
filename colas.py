@@ -35,6 +35,7 @@ class Cola:
             self.Final = nuevo  # El nuevo nodo pasa a ser el nodo Final
             return True
         return False
+
     def MostrarContenido(self):
         if self.Vacia():
             print("La Cola está vacía.")
@@ -44,6 +45,20 @@ class Cola:
             while p is not None:
                 print(p.info)
                 p = p.prox
+
+    def transformar_array(self):
+        array = []
+        if self.Vacia():
+            print("La Cola está vacía.")
+            return []
+        else:
+            p = self.Frente
+            print("Contenido de la Cola:")
+            while p is not None:
+                array.append(p.info)
+                p = p.prox
+        return array
+
     def Remover(self):
         #Remueve el primer elemento de la cola y lo devuelve
         if not self.Vacia():

@@ -1,0 +1,30 @@
+[
+    {
+        "cedula": "324324324324",
+        "nombre": "Luis montilla",
+        "carrera": "Análisis de Sistemas",
+        "prioridad": 9,
+        "materias": [],
+        "estado": "pendiente"
+    },
+    {
+        "cedula": "32432432",
+        "nombre": "Sara",
+        "carrera": "Ingeniería Informática",
+        "prioridad": 5,
+        "materias": [
+            "Calculo IV"
+        ],
+        "estado": "pendiente"
+    },
+    {
+        "cedula": "30601662",
+        "nombre": "Yolbert",
+        "carrera": "Ingeniería Informática",
+        "prioridad": 2,
+        "materias": [
+            "Estadistica I"
+        ],
+        "estado": "Inscrito"
+    }
+]
