@@ -4,8 +4,10 @@
         "nombre": "Luis montilla",
         "carrera": "Análisis de Sistemas",
         "prioridad": 9,
-        "materias": [],
-        "estado": "pendiente"
+        "materias": [
+            "Calculo IV"
+        ],
+        "estado": "Inscrito"
     },
     {
         "cedula": "32432432",
