@@ -120,7 +120,7 @@ class VentanaInscripcion(tk.Toplevel):
             entry.grid(row=i, column=1, padx=5, pady=5)
             self.entradas[campo.lower()] = entry
             
-        # Actualizar textboxs con el primer registro
+        # Actualizar textboxs with the first record
         self.actualizar_campos_desde_archivo()
 
 
@@ -185,11 +185,23 @@ class VentanaInscripcion(tk.Toplevel):
         scrollbar.pack(side="right", fill="y")
         
         self.lista_inscritos = Lista()
-        self.lista_tickets = Lista() 
-        
+        self.lista_tickets = Lista()
+
+        # Asegurar que los datos de estudiantes inscritos se carguen en la lista
+        self.cargar_datos_inscritos()
+
         self.autocompletar_desde_tabla(self.tabla)
         self.entry_buscar.bind("<KeyRelease>", self.buscar_por_cedula)
-    
+
+    def cargar_datos_inscritos(self):
+        try:
+            estudiantes = Db_json.cargar_estudiantes_json("estudiantes.json")
+            for estudiante in estudiantes:
+                if estudiante.estado.lower() == "inscrito":
+                    self.lista_inscritos.InsComienzo(estudiante)
+        except Exception as e:
+            print(f"Error al cargar estudiantes inscritos: {e}")
+
     def buscar_por_cedula(self, event=None):
         texto = self.entry_buscar.get().strip()
         if not texto:
@@ -248,6 +260,11 @@ class VentanaInscripcion(tk.Toplevel):
         kfccombobox_filtro.bind("<<ComboboxSelected>>", lambda e: self.filtrar_estudiantes_por_carrera(tabla_inscritos, kfccombobox_filtro.get()))
 
         self.filtrar_estudiantes_por_carrera(tabla_inscritos, "Todas las carreras")
+
+        # Cargar datos iniciales en la tabla
+        inscritos = self.obtener_inscritos()
+        for inscrito in inscritos:
+            tabla_inscritos.insert("", "end", values=inscrito)
 
     def obtener_inscritos(self):
         inscritos = []
