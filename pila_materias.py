@@ -61,6 +61,18 @@ def VentanaMaterias(ventana_inscripcion=None):
     ventana.geometry("750x450")
     center_window(ventana, 750, 450)
 
+    # --------------------------
+    # Botón Atrás
+    # --------------------------
+    def regresar_a_principal():
+        ventana.destroy()
+        if ventana_inscripcion is None and ventana.master:
+            ventana.master.deiconify()
+    frame_atras = tk.Frame(ventana)
+    frame_atras.pack(anchor="w", pady=(5, 0), padx=5)
+    btn_atras = tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal)
+    btn_atras.pack(side=tk.LEFT)
+
     pila_materias = Pila()  # Crear pila para materias seleccionadas
 
     frame_entrada = tk.Frame(ventana)

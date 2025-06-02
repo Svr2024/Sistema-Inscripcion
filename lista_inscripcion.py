@@ -35,6 +35,18 @@ class VentanaInscripcion(tk.Toplevel):
         scrollbar = tk.Scrollbar(self, orient="vertical", command=contenedor.yview)
         self.frame_contenido = tk.Frame(contenedor)
         
+        # --------------------------
+        # Botón Atrás
+        # --------------------------
+        def regresar_a_principal():
+            self.destroy()
+            if self.master:
+                self.master.deiconify()
+        frame_atras = tk.Frame(self.frame_contenido)
+        frame_atras.pack(anchor="w", pady=(5, 0), padx=5)
+        btn_atras = tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal)
+        btn_atras.pack(side=tk.LEFT)
+
         self.frame_contenido.bind(
             "<Configure>",
             lambda e: contenedor.configure(scrollregion=contenedor.bbox("all"))
