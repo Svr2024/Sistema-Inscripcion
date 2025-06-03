@@ -67,6 +67,9 @@ def VentanaTickets():
     def ver_cola():
         crear_grafica(cola)
 
+    def regresar_a_principal():
+        ventana.destroy()
+
     def ordenar_prioridad():
         if not cola.Vacia():
             i = 1
@@ -95,6 +98,9 @@ def VentanaTickets():
                         "Licenciatura en Matemáticas",
                         "Licenciatura en Física"]
 
+    frame_atras = tk.Frame(ventana)
+    frame_atras.pack(anchor="w", side="top", padx=10)
+
     label_titulo = tk.Label(ventana, text="Taquilla", font=("Arial", 16))
     label_titulo.pack(pady=10)
 
@@ -114,6 +120,7 @@ def VentanaTickets():
     select_prioridad = ttk.Combobox(ventana, values=prioridad_opciones, state="readonly")
     select_prioridad.pack()
 
+    tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal).pack(side=tk.LEFT, pady=10)
     tk.Button(ventana, text="Obtener Ticket", command=añadir_en_cola).pack(pady=10)
     tk.Button(ventana, text="Cerrar Taquilla", command=ordenar_prioridad).pack(pady=10)
     tk.Button(ventana, text="Visualizar Cola", command=ver_cola).pack(pady=10)
