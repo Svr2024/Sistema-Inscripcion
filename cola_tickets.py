@@ -3,6 +3,7 @@ from tkinter import ttk
 from colas import Cola
 from Estudiante import Estudiante
 from lista_inscripcion import VentanaInscripcion
+from grafica_tickets import crear_grafica
 from tkinter import messagebox
 from dbJson import Db_json
 
@@ -63,6 +64,9 @@ def VentanaTickets():
         select_carrera.set('')
         select_prioridad.set('')
 
+    def ver_cola():
+        crear_grafica(cola)
+
     def ordenar_prioridad():
         if not cola.Vacia():
             i = 1
@@ -112,3 +116,4 @@ def VentanaTickets():
 
     tk.Button(ventana, text="Obtener Ticket", command=añadir_en_cola).pack(pady=10)
     tk.Button(ventana, text="Cerrar Taquilla", command=ordenar_prioridad).pack(pady=10)
+    tk.Button(ventana, text="Visualizar Cola", command=ver_cola).pack(pady=10)
