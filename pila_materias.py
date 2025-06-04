@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from Pila import Pila  
 
+
 # Diccionario de materias y sus créditos
 MATERIAS_CREDITOS = {
     "Calculo I": 4,
@@ -66,20 +67,20 @@ def VentanaMaterias(ventana_inscripcion=None):
     # Botón Atrás
     # --------------------------
     def regresar_a_principal():
-       ventana.destroy()
-       if ventana_inscripcion:
-        ventana_inscripcion.deiconify()
-    frame_atras = tk.Frame(ventana ,  bg="white")
+        ventana.destroy()
+        if ventana_inscripcion:
+            ventana_inscripcion.deiconify()
+    frame_atras = tk.Frame(ventana, bg="white")
     frame_atras.pack(anchor="w", pady=(5, 0), padx=5)
     btn_atras = tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal, bg="#183386", fg="white")
     btn_atras.pack(side=tk.LEFT)
 
     pila_materias = Pila()  # Crear pila para materias seleccionadas
 
-    frame_entrada = tk.Frame(ventana ,  bg="white")
+    frame_entrada = tk.Frame(ventana, bg="white")
     frame_entrada.pack(pady=10)
 
-    tk.Label(frame_entrada, text="Materia:",  bg="white").pack(side=tk.LEFT)
+    tk.Label(frame_entrada, text="Materia:", bg="white").pack(side=tk.LEFT)
     entrada_materia = tk.Entry(frame_entrada, width=40, bg="#183386", fg="white")
     entrada_materia.pack(side=tk.LEFT, padx=5)
 
@@ -87,46 +88,46 @@ def VentanaMaterias(ventana_inscripcion=None):
     boton_agregar = tk.Button(frame_entrada, text="Agregar", bg="#183386", fg="white")
     boton_agregar.pack(side=tk.LEFT, padx=10)
 
-    frame_tablas = tk.Frame(ventana,  bg="white")
+    frame_tablas = tk.Frame(ventana, bg="white")
     frame_tablas.pack(pady=10, fill="both", expand=True)
-        # === Filtro de búsqueda de materias disponibles ===
-    frame_busqueda = tk.Frame(frame_tablas,  bg="white")
+    
+    # === Filtro de búsqueda de materias disponibles ===
+    frame_busqueda = tk.Frame(frame_tablas, bg="white")
     frame_busqueda.pack(side="left", fill="x", padx=10)
 
-    tk.Label(frame_busqueda, text="Buscar Materia Disponible:",  bg="white").pack(anchor="w")
+    tk.Label(frame_busqueda, text="Buscar Materia Disponible:", bg="white").pack(anchor="w")
     entrada_busqueda = tk.Entry(frame_busqueda, width=30, bg="#183386", fg="white")
     entrada_busqueda.pack(anchor="w", pady=(0, 5))
     
 
-
     # Scroll para tabla de materias disponibles
-    scrollbar_materias = tk.Scrollbar(frame_busqueda,  bg="white")
+    scrollbar_materias = tk.Scrollbar(frame_busqueda, bg="white")
     scrollbar_materias.pack(side="right", fill="y")
     style = ttk.Style()
     style.theme_use("default")
 
-       
     style.configure("Treeview.Heading", background="#003366", foreground="#FFFFFF", font=('Arial', 10, 'bold'))
-
-      
     style.configure("Treeview", background="#E6EDFF", foreground="#000000", fieldbackground="#FFFFFF", font=('Arial', 10))
-
-    style.map("Treeview", background=[('selected', '#cce5ff')], foreground=[('selected', '#000000')])   
-     
+    style.map("Treeview", background=[('selected', '#cce5ff')], foreground=[('selected', '#000000')])
+      
     tabla_materias = ttk.Treeview(frame_busqueda, columns=("materia", "uc"), show="headings", height=10, yscrollcommand=scrollbar_materias.set)
     tabla_materias.heading("materia", text="Materia")
     tabla_materias.heading("uc", text="UC")
     tabla_materias.column("materia", width=200)
     tabla_materias.column("uc", width=50)
     tabla_materias.pack(side="left", fill="y")
-   
-
-
+    
     scrollbar_materias.config(command=tabla_materias.yview)
 
     # Scroll para tabla de materias seleccionadas
-    frame_seleccionadas = tk.Frame(frame_tablas,  bg="white")
+    frame_seleccionadas = tk.Frame(frame_tablas, bg="white")
     frame_seleccionadas.pack(side="right", padx=10)
+
+    # Etiqueta para mostrar el total de UC seleccionadas
+    # Se crea una StringVar para que la etiqueta se actualice dinámicamente
+    total_uc_var = tk.StringVar(value=f"Total UC: 0 / {MAX_CREDITOS}")
+    tk.Label(frame_seleccionadas, textvariable=total_uc_var, bg="white", font=("Arial", 10, "bold")).pack(pady=5)
+
 
     scrollbar_seleccionadas = tk.Scrollbar(frame_seleccionadas)
     scrollbar_seleccionadas.pack(side="right", fill="y")
@@ -140,6 +141,33 @@ def VentanaMaterias(ventana_inscripcion=None):
 
     scrollbar_seleccionadas.config(command=tabla_seleccionadas.yview)
 
+    # Botón para remover la última materia seleccionada
+    def remover_ultima_materia_seleccionada():
+        if pila_materias.Vacia():
+            messagebox.showwarning("Advertencia", "No hay materias seleccionadas para remover.")
+            return
+
+        # Remover de la pila
+        materia_removida = pila_materias.Remover()
+        if materia_removida:
+            # Remover de la tabla (el último elemento insertado)
+            # Los children se obtienen en el orden de inserción
+            children_ids = tabla_seleccionadas.get_children()
+            if children_ids:
+                last_item_id = children_ids[-1]
+                tabla_seleccionadas.delete(last_item_id)
+                actualizar_total_uc() # Actualizar el total de UC
+                messagebox.showinfo("Removida", f"Materia '{materia_removida}' removida.")
+            else:
+                # Esto no debería ocurrir si la pila no está vacía, pero es una protección
+                messagebox.showerror("Error", "Error al remover de la tabla.")
+        else:
+            messagebox.showerror("Error", "No se pudo remover la materia de la pila.")
+
+    btn_remover_ultima = tk.Button(frame_seleccionadas, text="Remover Última", command=remover_ultima_materia_seleccionada, bg="#D32F2F", fg="white")
+    btn_remover_ultima.pack(pady=5)
+
+
     # Llenar tabla de materias disponibles
     for materia, uc in MATERIAS_CREDITOS.items():
         tabla_materias.insert("", "end", values=(materia, uc))
@@ -150,9 +178,17 @@ def VentanaMaterias(ventana_inscripcion=None):
     def obtener_creditos_totales():
         total = 0
         for item in tabla_seleccionadas.get_children():
-            uc = int(tabla_seleccionadas.item(item, "values")[1])
-            total += uc
+            # Usar un try-except para evitar errores si los valores no son números
+            try:
+                uc = int(tabla_seleccionadas.item(item, "values")[1])
+                total += uc
+            except (ValueError, IndexError):
+                pass # Manejar casos donde 'uc' no es un número o no existe
         return total
+
+    def actualizar_total_uc():
+        current_total = obtener_creditos_totales()
+        total_uc_var.set(f"Total UC: {current_total} / {MAX_CREDITOS}")
 
     def esta_en_grupo_excluyente(nueva_materia):
         for grupo in grupos_excluyentes:
@@ -167,7 +203,7 @@ def VentanaMaterias(ventana_inscripcion=None):
         # Normalizar el texto ingresado para evitar problemas de mayúsculas/minúsculas o espacios
         materia_input = entrada_materia.get().strip()
         
-        if materia_input == "":
+        if not materia_input: # Simplificado para campo vacío
             messagebox.showwarning("Advertencia", "Ingrese al menos una materia.")
             return
 
@@ -188,11 +224,11 @@ def VentanaMaterias(ventana_inscripcion=None):
             return
             
         if esta_en_grupo_excluyente(materia):
-            messagebox.showwarning("Conflicto", f"La materia '{materia}' pertenece a un grupo excluyente.")
+            messagebox.showwarning("Conflicto", f"La materia '{materia}' pertenece a un grupo excluyente y ya tienes una materia de ese grupo inscrita.")
             return
             
-        creditos_actuales = obtener_creditos_totales()
         uc = MATERIAS_CREDITOS[materia]
+        creditos_actuales = obtener_creditos_totales()
         if creditos_actuales + uc > MAX_CREDITOS:
             messagebox.showerror("Límite", f"Agregar '{materia}' excede el límite de {MAX_CREDITOS} UC.")
             return
@@ -201,6 +237,7 @@ def VentanaMaterias(ventana_inscripcion=None):
         pila_materias.Insertar(materia)
         tabla_seleccionadas.insert("", "end", values=(materia, uc))
         entrada_materia.delete(0, tk.END)
+        actualizar_total_uc() # Actualizar el total de UC
 
     boton_agregar.config(command=agregar_materia)
 
@@ -219,7 +256,7 @@ def VentanaMaterias(ventana_inscripcion=None):
             messagebox.showinfo("Éxito", "Materias confirmadas y pasadas a inscripción.")
             ventana.destroy()  
         except AttributeError:
-            messagebox.showerror("Error", "Ha ocurrido un error inesperado.")
+            messagebox.showerror("Error", "Ha ocurrido un error inesperado al pasar las materias. Asegúrese de que la ventana de inscripción tiene el método 'actualizar_materias_confirmadas'.")
 
     # Botón Confirmar Materias 
     boton_confirmar = tk.Button(ventana, text="Confirmar materias", command=confirmar_materias, bg="#183386", fg="white")
@@ -244,11 +281,12 @@ def VentanaMaterias(ventana_inscripcion=None):
             uc = int(valores[1])
             respuesta = messagebox.askyesno("Agregar Materia", f"¿Deseas agregar '{materia}' con {uc} UC?")
             if respuesta:
+                # Duplicación de lógica, idealmente refactorizar en una función común
                 if materia in pila_materias.obtener_contenido():
                     messagebox.showinfo("Duplicado", "Esta materia ya fue agregada.")
                     return
                 if esta_en_grupo_excluyente(materia):
-                    messagebox.showwarning("Conflicto", f"La materia '{materia}' pertenece a un grupo excluyente.")
+                    messagebox.showwarning("Conflicto", f"La materia '{materia}' pertenece a un grupo excluyente y ya tienes una materia de ese grupo inscrita.")
                     return
                 creditos_actuales = obtener_creditos_totales()
                 if creditos_actuales + uc > MAX_CREDITOS:
@@ -256,6 +294,8 @@ def VentanaMaterias(ventana_inscripcion=None):
                     return
                 pila_materias.Insertar(materia)
                 tabla_seleccionadas.insert("", "end", values=(materia, uc))
+                entrada_materia.delete(0, tk.END)
+                actualizar_total_uc() # Actualizar el total de UC
     
     # Función para rellenar el campo de entrada al seleccionar una materia
     def seleccionar_materia_clic(event):
@@ -269,5 +309,7 @@ def VentanaMaterias(ventana_inscripcion=None):
     tabla_materias.bind("<Double-1>", seleccionar_materia_doble_clic)
     tabla_materias.bind("<ButtonRelease-1>", seleccionar_materia_clic)
 
-    return ventana
+    # Actualizar el total de UC al iniciar la ventana (si ya hay materias en la pila)
+    actualizar_total_uc()
 
+    return ventana
