@@ -164,8 +164,8 @@ def VentanaMaterias(ventana_inscripcion=None):
         else:
             messagebox.showerror("Error", "No se pudo remover la materia de la pila.")
 
-    btn_remover_ultima = tk.Button(frame_seleccionadas, text="Remover Última", command=remover_ultima_materia_seleccionada, bg="#D32F2F", fg="white")
-    btn_remover_ultima.pack(pady=5)
+    btn_remover_ultima = tk.Button(ventana, text="Remover Última Materia Seleccionada", command=remover_ultima_materia_seleccionada, bg="#D32F2F", fg="white")
+    btn_remover_ultima.pack(pady=9)
 
 
     # Llenar tabla de materias disponibles
