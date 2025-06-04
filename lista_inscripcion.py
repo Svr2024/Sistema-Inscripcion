@@ -28,14 +28,12 @@ class VentanaInscripcion(tk.Toplevel):
         super().__init__(master)
         self.title("Lista de Inscripción")
         self.geometry("850x650")
-        self.configure(bg="white")
         self.pila_cambios = Pila()
         center_window(self, 850, 650)
-        
 
-        contenedor = tk.Canvas(self,  bg="white")
+        contenedor = tk.Canvas(self)
         scrollbar = tk.Scrollbar(self, orient="vertical", command=contenedor.yview)
-        self.frame_contenido = tk.Frame(contenedor , bg="white")
+        self.frame_contenido = tk.Frame(contenedor)
         
         # --------------------------
         # Botón Atrás
@@ -44,9 +42,9 @@ class VentanaInscripcion(tk.Toplevel):
             self.destroy()
             if self.master:
                 self.master.deiconify()
-        frame_atras = tk.Frame(self.frame_contenido , bg="white")
+        frame_atras = tk.Frame(self.frame_contenido)
         frame_atras.pack(anchor="w", pady=(5, 0), padx=5)
-        btn_atras = tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal , bg="#183386", fg="white")
+        btn_atras = tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal)
         btn_atras.pack(side=tk.LEFT)
 
         self.frame_contenido.bind(
@@ -60,9 +58,9 @@ class VentanaInscripcion(tk.Toplevel):
         # --------------------------
         # Turno
         # --------------------------
-        frame_turno = tk.Frame(self.frame_contenido , bg="white")
+        frame_turno = tk.Frame(self.frame_contenido)
         frame_turno.pack(pady=10)
-        tk.Label(frame_turno, text="Turno:", bg="white").pack(side=tk.LEFT, padx=5)
+        tk.Label(frame_turno, text="Turno:").pack(side=tk.LEFT, padx=5)
         self.textturno = tk.Entry(frame_turno)
         self.textturno.pack(side=tk.LEFT)
         self.actualizar_turno()
@@ -70,31 +68,21 @@ class VentanaInscripcion(tk.Toplevel):
         # --------------------------
         # Buscar
         # --------------------------
-        frame_buscar = tk.Frame(self.frame_contenido , bg="white")
+        frame_buscar = tk.Frame(self.frame_contenido)
         frame_buscar.pack(pady=5)
-        tk.Label(frame_buscar, text="Buscar:", bg="white").pack(side=tk.LEFT, padx=5)
-        self.entry_buscar = tk.Entry(frame_buscar , bg="#183386", fg="white" )
+        tk.Label(frame_buscar, text="Buscar:").pack(side=tk.LEFT, padx=5)
+        self.entry_buscar = tk.Entry(frame_buscar)
         self.entry_buscar.pack(side=tk.LEFT)
         
 
         # --------------------------
         # Tabla principal 
         # --------------------------
-        frame_tabla = tk.Frame(self.frame_contenido , bg="white")
+        frame_tabla = tk.Frame(self.frame_contenido)
         frame_tabla.pack(fill="both", expand=True, padx=10)
 
         scrollbar_tabla = tk.Scrollbar(frame_tabla, orient="vertical")
         scrollbar_tabla.pack(side="right", fill="y")
-        style = ttk.Style()
-        style.theme_use("default")
-
-        # Estilo para encabezados (esto es para todas las tablas 
-        style.configure("Treeview.Heading", background="#003366", foreground="#FFFFFF", font=('Arial', 10, 'bold'))
-
-        # Estilo para celdas
-        style.configure("Treeview", background="#E6EDFF", foreground="#000000", fieldbackground="#FFFFFF", font=('Arial', 10))
-
-        style.map("Treeview", background=[('selected', '#cce5ff')], foreground=[('selected', '#000000')])
 
         columnas = ("cedula", "nombre", "carrera", "prioridad", "estado")
         self.tabla = ttk.Treeview(
@@ -120,15 +108,15 @@ class VentanaInscripcion(tk.Toplevel):
         # --------------------------
         # Campos de entrada
         # --------------------------
-        frame_form = tk.Frame(self.frame_contenido , bg="white")
+        frame_form = tk.Frame(self.frame_contenido)
         frame_form.pack(pady=10)
 
         etiquetas = ["Cedula", "Nombre", "Carrera", "Prioridad"]
         self.entradas = {}
 
         for i, campo in enumerate(etiquetas):
-            tk.Label(frame_form, text=campo , bg="white").grid(row=i, column=0, padx=5, pady=5, sticky="e")
-            entry = tk.Entry(frame_form , bg="#183386", fg="white")
+            tk.Label(frame_form, text=campo).grid(row=i, column=0, padx=5, pady=5, sticky="e")
+            entry = tk.Entry(frame_form)
             entry.grid(row=i, column=1, padx=5, pady=5)
             self.entradas[campo.lower()] = entry
             
@@ -139,15 +127,14 @@ class VentanaInscripcion(tk.Toplevel):
         # --------------------------
         # Botón: Incluir materias
         # --------------------------
-        btn_materias = tk.Button(self.frame_contenido, text="Incluir materias", command=self.abrir_ventana_materias , bg="#183386", fg="white")
+        btn_materias = tk.Button(self.frame_contenido, text="Incluir materias", command=self.abrir_ventana_materias)
         btn_materias.pack(pady=10)
 
         # --------------------------
         # Tabla de materias confirmadas
         # --------------------------
-        frame_materias = tk.Frame(self.frame_contenido , bg="white")
+        frame_materias = tk.Frame(self.frame_contenido)
         frame_materias.pack(pady=5)
-        
 
         scrollbar_materias = tk.Scrollbar(frame_materias, orient="vertical")
         self.tabla_materias_confirmadas = ttk.Treeview(
@@ -157,7 +144,6 @@ class VentanaInscripcion(tk.Toplevel):
             height=4,
             yscrollcommand=scrollbar_materias.set
         )
-        
         scrollbar_materias.config(command=self.tabla_materias_confirmadas.yview)
 
         self.tabla_materias_confirmadas.heading("materia", text="Materia")
@@ -171,25 +157,25 @@ class VentanaInscripcion(tk.Toplevel):
         # --------------------------
         # Botones Principales
         # --------------------------
-        frame_botones = tk.Frame(self.frame_contenido , bg="white")
+        frame_botones = tk.Frame(self.frame_contenido)
         frame_botones.pack(pady=5)
 
-        btn_inscribir_alumno = tk.Button(frame_botones, text="Inscribir", command=self.inscribir_alumno , bg="#183386", fg="white")
+        btn_inscribir_alumno = tk.Button(frame_botones, text="Inscribir", command=self.inscribir_alumno)
         btn_inscribir_alumno.pack(side=tk.LEFT, padx=5)
 
-        btn_cancelar = tk.Button(frame_botones, text="Cancelar inscripción", command=self.cancelar_inscripcion , bg="#183386", fg="white")
+        btn_cancelar = tk.Button(frame_botones, text="Cancelar inscripción", command=self.cancelar_inscripcion)
         btn_cancelar.pack(side=tk.LEFT, padx=5)
 
-        btn_eliminar = tk.Button(frame_botones, text="Eliminar registro" , bg="#183386", fg="white")
+        btn_eliminar = tk.Button(frame_botones, text="Eliminar registro", command=self.eliminar_registro)
         btn_eliminar.pack(side=tk.LEFT, padx=5)
         
-        btn_limpiar = tk.Button(frame_botones, text="Limpiar campos", command=self.limpiar_campos , bg="#183386", fg="white")
+        btn_limpiar = tk.Button(frame_botones, text="Limpiar campos", command=self.limpiar_campos)
         btn_limpiar.pack(side=tk.LEFT, padx=5)
 
         # --------------------------
         # Botón: Historial de Ingresados
         # --------------------------
-        btn_ver_ingresados = tk.Button(self.frame_contenido, text="Ver ingresados", command=self.abrir_ventana_ingresados , bg="#183386", fg="white")
+        btn_ver_ingresados = tk.Button(self.frame_contenido, text="Ver ingresados", command=self.abrir_ventana_ingresados)
         btn_ver_ingresados.pack(pady=6)
 
         # --------------------------
@@ -197,7 +183,6 @@ class VentanaInscripcion(tk.Toplevel):
         # --------------------------
         contenedor.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
-        
         
         self.lista_inscritos = Lista()
         self.lista_tickets = Lista()
@@ -317,7 +302,43 @@ class VentanaInscripcion(tk.Toplevel):
         except Exception as e:
             print(f"Error leyendo {archivo}: {e}")
 
-
+    def eliminar_registro(self): 
+            cedula_a_eliminar = self.entradas["cedula"].get().strip()
+    
+            if not cedula_a_eliminar:
+                tk.messagebox.showwarning("Error", "Por favor, ingrese la cedula del estudiante a eliminar.")
+                return
+            confirmacion = tk.messagebox.askyesno("Confirmación", f"Está seguro de eliminar al estudiante con la cedula {cedula_a_eliminar}?")
+    
+            if not confirmacion:
+                return
+    
+            try:
+                estudiantes = Db_json.cargar_estudiantes_json("estudiantes.json")
+    
+                registro_encontrado = False 
+                datos_actualizados = []
+                for i, registro in enumerate(estudiantes): 
+                    if registro.cedula == cedula_a_eliminar: 
+                        registro_encontrado = True
+                    else:
+                        datos_actualizados.append(registro) 
+                
+                if registro_encontrado:
+                    Db_json.guardar_estudiantes_json(datos_actualizados, "estudiantes.json")
+                    tk.messagebox.showinfo("Éxito", f"Estudiante con cédula {cedula_a_eliminar} eliminado correctamente.")
+                    self.cargar_datos_desde_archivo() 
+                    self.actualizar_turno() 
+                    self.limpiar_campos() 
+                else:
+                    tk.messagebox.showwarning("No Encontrado", f"No se encontró ningún estudiante con la cédula {cedula_a_eliminar}.")
+                
+            except FileNotFoundError:
+                tk.messagebox.showerror("Error", "No se encontró el archivo estudiantes.json. Asegúrese de que el archivo exista en la ruta correcta.")
+            except Exception as e:
+                tk.messagebox.showerror("Error", f"Error al eliminar el estudiante: {str(e)}")
+    
+    
     def limpiar_campos(self):
         for entry in self.entradas.values():
             entry.delete(0, tk.END)
