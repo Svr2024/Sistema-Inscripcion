@@ -180,7 +180,7 @@ class VentanaInscripcion(tk.Toplevel):
         btn_cancelar = tk.Button(frame_botones, text="Cancelar inscripción", command=self.cancelar_inscripcion , bg="#183386", fg="white")
         btn_cancelar.pack(side=tk.LEFT, padx=5)
 
-        btn_eliminar = tk.Button(frame_botones, text="Eliminar registro" , bg="#183386", fg="white")
+        btn_eliminar = tk.Button(frame_botones, text="Eliminar registro" , command=self.eliminar_registro, bg="#183386", fg="white")
         btn_eliminar.pack(side=tk.LEFT, padx=5)
         
         btn_limpiar = tk.Button(frame_botones, text="Limpiar campos", command=self.limpiar_campos , bg="#183386", fg="white")
@@ -531,3 +531,45 @@ class VentanaInscripcion(tk.Toplevel):
 
         except Exception as e:
             tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
+    def eliminar_registro(self):
+     cedula = self.entradas["cedula"].get().strip()
+     if not cedula:
+        tk.messagebox.showwarning("Aviso", "Ingrese una cédula para eliminar.")
+        return
+
+     try:
+        estudiantes = Db_json.cargar_estudiantes_json("estudiantes.json")
+     except FileNotFoundError:
+        tk.messagebox.showerror("Error", "Archivo estudiantes.json no encontrado.")
+        return
+
+     lista_estudiantes = Lista()
+     for est in estudiantes:
+        lista_estudiantes.InsComienzo(est)
+
+    # Buscar y eliminar por cédula
+     p = lista_estudiantes.Primero
+     ant = None
+     eliminado = False
+
+     while p is not None:
+        if p.info.cedula == cedula:
+            if ant is None:
+                lista_estudiantes.EliComienzo()
+            else:
+                lista_estudiantes.EliDespues(ant)
+            eliminado = True
+            break
+        ant = p
+        p = p.prox
+
+     if eliminado:
+        
+        estudiantes_actualizados = lista_estudiantes.obtener_todos()
+        Db_json.guardar_estudiantes_json(estudiantes_actualizados, "estudiantes.json")
+        tk.messagebox.showinfo("Éxito", f"Estudiante con cédula {cedula} eliminado.")
+        self.cargar_datos_desde_archivo()  
+        self.limpiar_campos()             
+        self.actualizar_turno()
+     else:
+        tk.messagebox.showinfo("No encontrado", f"No se encontró estudiante con cédula {cedula}.")
