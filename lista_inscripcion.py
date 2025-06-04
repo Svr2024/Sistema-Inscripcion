@@ -4,6 +4,10 @@ from tkinter import ttk
 from pila_materias import VentanaMaterias
 from Lista import Lista
 from dbJson import Db_json
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from datetime import datetime
+import os
 
 # Helper to center a window on the screen
 def center_window(win, width=None, height=None):
@@ -185,6 +189,10 @@ class VentanaInscripcion(tk.Toplevel):
         
         btn_limpiar = tk.Button(frame_botones, text="Limpiar campos", command=self.limpiar_campos , bg="#183386", fg="white")
         btn_limpiar.pack(side=tk.LEFT, padx=5)
+        
+        btn_pdf = tk.Button(frame_botones, text="Generar PDF de Inscritos", command=self.generar_pdf_inscritos,  bg="#183386", fg="white")
+        btn_pdf.pack(side=tk.LEFT, padx=5)
+
 
         # --------------------------
         # Botón: Historial de Ingresados
@@ -573,3 +581,70 @@ class VentanaInscripcion(tk.Toplevel):
         self.actualizar_turno()
      else:
         tk.messagebox.showinfo("No encontrado", f"No se encontró estudiante con cédula {cedula}.")
+        
+    def generar_pdf_inscritos(self):
+     try:
+        estudiantes = Db_json.cargar_estudiantes_json("estudiantes.json")
+     except FileNotFoundError:
+        tk.messagebox.showerror("Error", "No se encontró el archivo estudiantes.json.")
+        return
+
+     inscritos = [est for est in estudiantes if est.estado.lower() == "inscrito"]
+
+     if not inscritos:
+        tk.messagebox.showinfo("Información", "No hay estudiantes inscritos para generar el PDF.")
+        return
+
+    # Crear el archivo PDF
+     fecha_hoy = datetime.now().strftime("%d-%m-%Y")
+     nombre_archivo = f"inscritos_{fecha_hoy}.pdf"
+     c = canvas.Canvas(nombre_archivo, pagesize=letter)
+     width, height = letter
+
+    # Encabezado
+     c.setFont("Helvetica-Bold", 14)
+     c.drawCentredString(width / 2, height - 50, "UNIVERSIDAD CENTROCCIDENTAL LISANDRO ALVARADO")
+     c.setFont("Helvetica", 12)
+     c.drawCentredString(width / 2, height - 70, f"Inscripciones - {fecha_hoy}")
+
+    # Tabla de datos
+     c.setFont("Helvetica-Bold", 10)
+     columnas = ["Cédula", "Nombre", "Carrera", "Prioridad", "Materias"]
+     x_offsets = [50, 110, 230, 350, 430]
+     y = height - 100
+
+     for i, col in enumerate(columnas):
+        c.drawString(x_offsets[i], y, col)
+
+     c.setFont("Helvetica", 9)
+     y -= 20
+
+     for est in inscritos:
+        if y < 70:
+            c.showPage()
+            y = height - 50
+            c.setFont("Helvetica-Bold", 10)
+            for i, col in enumerate(columnas):
+                c.drawString(x_offsets[i], y, col)
+            c.setFont("Helvetica", 9)
+            y -= 20
+
+        # Datos fijos (convertidos a string por seguridad)
+        c.drawString(x_offsets[0], y, str(est.cedula))
+        c.drawString(x_offsets[1], y, str(est.nombre))
+        c.drawString(x_offsets[2], y, str(est.carrera))
+        c.drawString(x_offsets[3], y, str(est.prioridad))
+
+        # Materias en columna vertical
+        y_materia = y
+        for materia in est.materias:
+            c.drawString(x_offsets[4], y_materia, f"- {str(materia)}")
+            y_materia -= 12
+
+        # Ajustar la y final según la cantidad de materias
+        y = y_materia - 5
+
+     c.save()
+
+     tk.messagebox.showinfo("Éxito", f"PDF generado exitosamente: {nombre_archivo}")
+     os.startfile(nombre_archivo)  # Abre el PDF automáticamente en Windows

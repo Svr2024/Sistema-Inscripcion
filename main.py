@@ -4,6 +4,7 @@ from cola_tickets import VentanaTickets
 from lista_inscripcion import VentanaInscripcion
 from pila_materias import VentanaMaterias
 
+
 def abrir_ventana_inscripcion():
     root.withdraw()  
     ventana = VentanaInscripcion(root) 
