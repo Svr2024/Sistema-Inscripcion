@@ -386,81 +386,81 @@ class VentanaInscripcion(tk.Toplevel):
             print(f"No se encontró el archivo {archivo}")
         except Exception as e:
             print(f"Error leyendo {archivo}: {e}")
-
+            
     def inscribir_alumno(self):
-        cedula = self.entradas["cedula"].get().strip()
-        nombre = self.entradas["nombre"].get().strip()
-        carrera = self.entradas["carrera"].get().strip()
-        prioridad = self.entradas["prioridad"].get().strip()
+     cedula = self.entradas["cedula"].get().strip()
+     nombre = self.entradas["nombre"].get().strip()
+     carrera = self.entradas["carrera"].get().strip()
+     prioridad = self.entradas["prioridad"].get().strip()
 
-        if not all([cedula, nombre, carrera, prioridad]):
-            tk.messagebox.showerror("Error", "Todos los campos deben estar llenos.")
-            return
+     if not all([cedula, nombre, carrera, prioridad]):
+        tk.messagebox.showerror("Error", "Todos los campos deben estar llenos.")
+        return
 
-    # Obtener materias confirmadas
-        materias = []
-        for item in self.tabla_materias_confirmadas.get_children():
-            materia = self.tabla_materias_confirmadas.item(item, "values")[0]
-            materias.append(materia)
+     # Obtener materias confirmadas
+     materias = []
+     for item in self.tabla_materias_confirmadas.get_children():
+        materia = self.tabla_materias_confirmadas.item(item, "values")[0]
+        materias.append(materia)
 
-    #  ojito no permitir inscripción sin materias
-        if not materias:
-            tk.messagebox.showerror("Error", "Debe confirmar al menos una materia para poder inscribir al estudiante.")
-            return
+     if not materias:
+        tk.messagebox.showerror("Error", "Debe confirmar al menos una materia para poder inscribir al estudiante.")
+        return
 
-        try:
-            estudiantes = Db_json.cargar_estudiantes_json("estudiantes.json")
-        except FileNotFoundError:
-            tk.messagebox.showerror("Error", "No se encontró el archivo estudiantes.json.")
-            return
+     try:
+        estudiantes = Db_json.cargar_estudiantes_json("estudiantes.json")
+     except FileNotFoundError:
+        tk.messagebox.showerror("Error", "No se encontró el archivo estudiantes.json.")
+        return
 
-        estudiante_encontrado = None
-        for estudiante in estudiantes:
-            if estudiante.cedula == cedula:
-                estudiante_encontrado = estudiante
-                continue
+     estudiante_encontrado = None
+     for estudiante in estudiantes:
+        if estudiante.cedula == cedula:
+            estudiante_encontrado = estudiante
+            break
 
-        if not estudiante_encontrado:
-            tk.messagebox.showerror("Error", f"No existe un ticket para la cédula {cedula}.")
-            return
+     if not estudiante_encontrado:
+        tk.messagebox.showerror("Error", f"No existe un ticket para la cédula {cedula}.")
+        return
 
-        estudiante_encontrado.estado = "Inscrito"
-        estudiante_encontrado.materias = materias
-        
-        estudiantes_guardar = list()
-        for estudiante in estudiantes:
-            if estudiante.cedula == estudiante_encontrado.cedula:
-                estudiantes_guardar.append(estudiante_encontrado)
-            else:
-                estudiantes_guardar.append(estudiante)
+     estudiante_encontrado.estado = "Inscrito"
+     estudiante_encontrado.materias = materias
 
-
-    # Registrar en la lista 
-        if not self.lista_inscritos.Llena():
-            if self.lista_inscritos.Vacia():
-                self.lista_inscritos.InsComienzo(estudiante_encontrado)
-            else:
-                p = self.lista_inscritos.Primero
-                while p.prox is not None:
-                    p = p.prox
-                self.lista_inscritos.InsDespues(p, estudiante_encontrado)
+    
+     estudiantes_guardar = []
+     for estudiante in estudiantes:
+        if estudiante.cedula == estudiante_encontrado.cedula:
+            estudiantes_guardar.append(estudiante_encontrado)
         else:
-            tk.messagebox.showerror("Error", "No se pudo inscribir al estudiante, lista llena.")
-            return
+            estudiantes_guardar.append(estudiante)
 
-        try:
-            Db_json.guardar_estudiantes_json(estudiantes_guardar, "estudiantes.json")
+    
+     if self.lista_inscritos.Llena():
+        tk.messagebox.showerror("Error", "No se pudo inscribir al estudiante, lista llena.")
+        return
 
-            tk.messagebox.showinfo("Éxito", f"Estudiante {estudiante_encontrado.nombre} inscrito correctamente.")
+     if self.lista_inscritos.Vacia():
+        self.lista_inscritos.InsComienzo(estudiante_encontrado)
+     else:
+        p = self.lista_inscritos.Primero
+        while p.prox is not None:
+            p = p.prox
+        self.lista_inscritos.InsDespues(p, estudiante_encontrado)
 
-            self.tabla.delete(*self.tabla.get_children())
-            self.cargar_datos_desde_archivo()
-            self.actualizar_turno()
-            self.actualizar_campos_desde_archivo()
-            self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
+     try:
+        Db_json.guardar_estudiantes_json(estudiantes_guardar, "estudiantes.json")
 
-        except Exception as e:
-            tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
+        tk.messagebox.showinfo("Éxito", f"Estudiante {estudiante_encontrado.nombre} inscrito correctamente.")
+
+        self.tabla.delete(*self.tabla.get_children())
+        self.cargar_datos_desde_archivo()
+        self.actualizar_turno()
+        self.actualizar_campos_desde_archivo()
+        self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
+
+     except Exception as e:
+        tk.messagebox.showerror("Error", f"No se pudo actualizar el archivo: {e}")
+
 
 
     def cancelar_inscripcion(self):
