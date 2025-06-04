@@ -1,35 +1,41 @@
 import tkinter as tk
+from PIL import Image, ImageTk  # Importe Pillow para poder manipular imágenes, como su tamaño
 from cola_tickets import VentanaTickets
 from lista_inscripcion import VentanaInscripcion
 from pila_materias import VentanaMaterias
 
 def abrir_ventana_inscripcion():
     root.withdraw()  
-
     ventana = VentanaInscripcion(root) 
-
     def al_cerrar():
         ventana.destroy()
         root.deiconify()  
-
     ventana.protocol("WM_DELETE_WINDOW", al_cerrar) 
+
+def abrir_ventana_tickets():
+    root.withdraw() 
+    ventana = VentanaTickets(root)  
+    def al_cerrar():
+        ventana.destroy()
+        root.deiconify()  
+    ventana.protocol("WM_DELETE_WINDOW", al_cerrar)
 
 def abrir_ventana_materias():
     root.withdraw()  
-
     ventana = VentanaMaterias(root) 
-
     def al_cerrar():
         ventana.destroy()
         root.deiconify()  
-
     ventana.protocol("WM_DELETE_WINDOW", al_cerrar) 
-
+    
 root = tk.Tk()
 root.title("Sistema de Inscripción")
 
-# Establecer tamaño inicial de la ventana
+
 root.geometry("800x600")
+
+
+root.configure(bg="white")
 
 # Centrar ventana en la pantalla
 root.update_idletasks()
@@ -39,14 +45,25 @@ x = (root.winfo_screenwidth() // 2) - (width // 2)
 y = (root.winfo_screenheight() // 2) - (height // 2)
 root.geometry(f"{width}x{height}+{x}+{y}")
 
-# Crear un marco para centrar los widgets
-frame = tk.Frame(root)
+
+frame = tk.Frame(root, bg="white")
 frame.pack(expand=True)
 
-tk.Label(frame, text="Sistema de Inscripción UCLA", font=("Arial", 16)).pack(pady=10)
+imagen_pil = Image.open("logo.png")    
+imagen_pil = imagen_pil.resize((80, 80), Image.Resampling.LANCZOS)  
+imagen_logo = ImageTk.PhotoImage(imagen_pil) 
 
-tk.Button(frame, text="Cola de espera", width=30, command=VentanaTickets).pack(pady=5)
-tk.Button(frame, text="Inscripción de Estudiantes ", width=30, command=abrir_ventana_inscripcion).pack(pady=5)
-tk.Button(frame, text="Materias", width=30, command=abrir_ventana_materias).pack(pady=5)
+label_imagen = tk.Label(frame, image=imagen_logo, bg="white")
+label_imagen.pack(pady=(20, 10))
+
+tk.Label(frame, text="Sistema de Inscripción UCLA", font=("Arial", 16), bg="white").pack(pady=10)
+
+color_boton = "#183386"  # Azul rey
+color_texto = "white"
+
+tk.Button(frame, text="Cola de espera", width=30, bg=color_boton, fg=color_texto, command=abrir_ventana_tickets).pack(pady=5)
+tk.Button(frame, text="Inscripción de Estudiantes ", width=30, bg=color_boton, fg=color_texto, command=abrir_ventana_inscripcion).pack(pady=5)
+tk.Button(frame, text="Materias", width=30, bg=color_boton, fg=color_texto, command=abrir_ventana_materias).pack(pady=5)
+
 
 root.mainloop()

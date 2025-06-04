@@ -7,13 +7,13 @@ from grafica_tickets import crear_grafica
 from tkinter import messagebox
 from dbJson import Db_json
 
-# --- Copied center_window helper here to avoid circular import ---
+
 def center_window(win, width=None, height=None):
     win.update_idletasks()
     if width is None or height is None:
         win_width = win.winfo_width()
         win_height = win.winfo_height()
-        if win_width == 1 or win_height == 1:  # Not yet drawn
+        if win_width == 1 or win_height == 1:  
             win_width = win.winfo_reqwidth()
             win_height = win.winfo_reqheight()
     else:
@@ -26,15 +26,25 @@ def center_window(win, width=None, height=None):
     win.geometry(f"{win_width}x{win_height}+{x}+{y}")
 
 
-def VentanaTickets():
-    ventana = tk.Toplevel()
+def VentanaTickets(master=None):
+    ventana = tk.Toplevel(master)
     ventana.title("Cola de Espera")
+    ventana.configure(bg="#E6EDFF")
     ventana.geometry("400x400")
     ventana.resizable(0,0) # Impidiendo redimensión de la ventana
     center_window(ventana, 400, 400)
 
     # Crear una instancia de Cola
     cola = Cola()
+
+    # Asegurar permanencia de datos ya existentes 
+    try:
+        estudiantes_guardados = Db_json.cargar_estudiantes_json("estudiantes.json")
+        for est in estudiantes_guardados:
+            cola.Insertar(est)
+    except FileNotFoundError:
+        print("No se encontró archivo de estudiantes previos. Se creará uno nuevo al cerrar taquilla.")
+
 
     def añadir_en_cola():
         cedula = entrada_cedula.get()
@@ -68,7 +78,10 @@ def VentanaTickets():
         crear_grafica(cola)
 
     def regresar_a_principal():
-        ventana.destroy()
+     ventana.destroy()
+     if master is not None:
+        master.deiconify()
+
 
     def ordenar_prioridad():
         if not cola.Vacia():
@@ -101,26 +114,27 @@ def VentanaTickets():
     frame_atras = tk.Frame(ventana)
     frame_atras.pack(anchor="w", side="top", padx=10)
 
-    label_titulo = tk.Label(ventana, text="Taquilla", font=("Arial", 16))
+    label_titulo = tk.Label(ventana, text="Taquilla",  bg="#E6EDFF", font=("Arial", 16))
     label_titulo.pack(pady=10)
 
-    tk.Label(ventana, text="Nombre:").pack()
+    tk.Label(ventana, text="Nombre:",  bg="#E6EDFF").pack()
     entrada_nombre = tk.Entry(ventana)
     entrada_nombre.pack()
 
-    tk.Label(ventana, text="Cédula:").pack()
+    tk.Label(ventana, text="Cédula:",  bg="#E6EDFF").pack()
     entrada_cedula = tk.Entry(ventana)
     entrada_cedula.pack()
 
-    tk.Label(ventana, text="Carrera:").pack()
+    tk.Label(ventana, text="Carrera:",  bg="#E6EDFF").pack()
     select_carrera = ttk.Combobox(ventana, value=carrera_opciones, state="readonly")
     select_carrera.pack()
 
-    tk.Label(ventana, text="Prioridad (1-10):").pack()
+    tk.Label(ventana, text="Prioridad (1-10):",  bg="#E6EDFF").pack()
     select_prioridad = ttk.Combobox(ventana, values=prioridad_opciones, state="readonly")
     select_prioridad.pack()
 
-    tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal).pack(side=tk.LEFT, pady=10)
-    tk.Button(ventana, text="Obtener Ticket", command=añadir_en_cola).pack(pady=10)
-    tk.Button(ventana, text="Cerrar Taquilla", command=ordenar_prioridad).pack(pady=10)
-    tk.Button(ventana, text="Visualizar Cola", command=ver_cola).pack(pady=10)
+    tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal, bg="#183386", fg="white").pack(side=tk.LEFT, pady=10)
+    tk.Button(ventana, text="Obtener Ticket", command=añadir_en_cola, bg="#183386", fg="white").pack(pady=10)
+    tk.Button(ventana, text="Cerrar Taquilla", command=ordenar_prioridad, bg="#183386", fg="white").pack(pady=10)
+    tk.Button(ventana, text="Visualizar Cola", command=ver_cola, bg="#183386", fg="white").pack(pady=10)
+    return ventana

@@ -58,6 +58,7 @@ def center_window(win, width=None, height=None):
 def VentanaMaterias(ventana_inscripcion=None):
     ventana = tk.Toplevel()
     ventana.title("Inclusión de Materias")
+    ventana.configure(bg="white")
     ventana.geometry("750x450")
     center_window(ventana, 750, 450)
 
@@ -65,43 +66,53 @@ def VentanaMaterias(ventana_inscripcion=None):
     # Botón Atrás
     # --------------------------
     def regresar_a_principal():
-        ventana.destroy()
-        if ventana_inscripcion is None and ventana.master:
-            ventana.master.deiconify()
-    frame_atras = tk.Frame(ventana)
+       ventana.destroy()
+       if ventana_inscripcion:
+        ventana_inscripcion.deiconify()
+    frame_atras = tk.Frame(ventana ,  bg="white")
     frame_atras.pack(anchor="w", pady=(5, 0), padx=5)
-    btn_atras = tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal)
+    btn_atras = tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal, bg="#183386", fg="white")
     btn_atras.pack(side=tk.LEFT)
 
     pila_materias = Pila()  # Crear pila para materias seleccionadas
 
-    frame_entrada = tk.Frame(ventana)
+    frame_entrada = tk.Frame(ventana ,  bg="white")
     frame_entrada.pack(pady=10)
 
-    tk.Label(frame_entrada, text="Materia:").pack(side=tk.LEFT)
-    entrada_materia = tk.Entry(frame_entrada, width=40)
+    tk.Label(frame_entrada, text="Materia:",  bg="white").pack(side=tk.LEFT)
+    entrada_materia = tk.Entry(frame_entrada, width=40, bg="#183386", fg="white")
     entrada_materia.pack(side=tk.LEFT, padx=5)
 
     # Botón Agregar
-    boton_agregar = tk.Button(frame_entrada, text="Agregar")
+    boton_agregar = tk.Button(frame_entrada, text="Agregar", bg="#183386", fg="white")
     boton_agregar.pack(side=tk.LEFT, padx=10)
 
-    frame_tablas = tk.Frame(ventana)
+    frame_tablas = tk.Frame(ventana,  bg="white")
     frame_tablas.pack(pady=10, fill="both", expand=True)
         # === Filtro de búsqueda de materias disponibles ===
-    frame_busqueda = tk.Frame(frame_tablas)
+    frame_busqueda = tk.Frame(frame_tablas,  bg="white")
     frame_busqueda.pack(side="left", fill="x", padx=10)
 
-    tk.Label(frame_busqueda, text="Buscar Materia Disponible:").pack(anchor="w")
-    entrada_busqueda = tk.Entry(frame_busqueda, width=30)
+    tk.Label(frame_busqueda, text="Buscar Materia Disponible:",  bg="white").pack(anchor="w")
+    entrada_busqueda = tk.Entry(frame_busqueda, width=30, bg="#183386", fg="white")
     entrada_busqueda.pack(anchor="w", pady=(0, 5))
     
 
 
     # Scroll para tabla de materias disponibles
-    scrollbar_materias = tk.Scrollbar(frame_busqueda)
+    scrollbar_materias = tk.Scrollbar(frame_busqueda,  bg="white")
     scrollbar_materias.pack(side="right", fill="y")
+    style = ttk.Style()
+    style.theme_use("default")
 
+       
+    style.configure("Treeview.Heading", background="#003366", foreground="#FFFFFF", font=('Arial', 10, 'bold'))
+
+      
+    style.configure("Treeview", background="#E6EDFF", foreground="#000000", fieldbackground="#FFFFFF", font=('Arial', 10))
+
+    style.map("Treeview", background=[('selected', '#cce5ff')], foreground=[('selected', '#000000')])   
+     
     tabla_materias = ttk.Treeview(frame_busqueda, columns=("materia", "uc"), show="headings", height=10, yscrollcommand=scrollbar_materias.set)
     tabla_materias.heading("materia", text="Materia")
     tabla_materias.heading("uc", text="UC")
@@ -114,7 +125,7 @@ def VentanaMaterias(ventana_inscripcion=None):
     scrollbar_materias.config(command=tabla_materias.yview)
 
     # Scroll para tabla de materias seleccionadas
-    frame_seleccionadas = tk.Frame(frame_tablas)
+    frame_seleccionadas = tk.Frame(frame_tablas,  bg="white")
     frame_seleccionadas.pack(side="right", padx=10)
 
     scrollbar_seleccionadas = tk.Scrollbar(frame_seleccionadas)
@@ -211,7 +222,7 @@ def VentanaMaterias(ventana_inscripcion=None):
             messagebox.showerror("Error", "Ha ocurrido un error inesperado.")
 
     # Botón Confirmar Materias 
-    boton_confirmar = tk.Button(ventana, text="Confirmar materias", command=confirmar_materias)
+    boton_confirmar = tk.Button(ventana, text="Confirmar materias", command=confirmar_materias, bg="#183386", fg="white")
     boton_confirmar.pack(pady=10)
     
     def filtrar_materias(event=None):
@@ -258,5 +269,5 @@ def VentanaMaterias(ventana_inscripcion=None):
     tabla_materias.bind("<Double-1>", seleccionar_materia_doble_clic)
     tabla_materias.bind("<ButtonRelease-1>", seleccionar_materia_clic)
 
+    return ventana
 
-    ventana.mainloop()
