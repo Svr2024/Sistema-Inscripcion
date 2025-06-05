@@ -141,6 +141,22 @@ def VentanaMaterias(ventana_inscripcion=None):
 
     scrollbar_seleccionadas.config(command=tabla_seleccionadas.yview)
 
+    def actualizar_total_uc():
+        total_uc = sum(int(tabla_seleccionadas.item(child, 'values')[1]) for child in tabla_seleccionadas.get_children())
+        total_uc_var.set(f"Total UC: {total_uc} / {MAX_CREDITOS}")
+
+    # Pre-cargar materias confirmadas al abrir desde Inscripción
+    if ventana_inscripcion:
+        # Obtener materias de la tabla de inscripción
+        try:
+            for child in ventana_inscripcion.tabla_materias_confirmadas.get_children():
+                mat, uc = ventana_inscripcion.tabla_materias_confirmadas.item(child, 'values')
+                pila_materias.Insertar(mat)
+                tabla_seleccionadas.insert('', 'end', values=(mat, uc))
+        except Exception:
+            pass
+        actualizar_total_uc()
+
     # Botón para remover la última materia seleccionada
     def remover_ultima_materia_seleccionada():
         if pila_materias.Vacia():
@@ -175,6 +191,7 @@ def VentanaMaterias(ventana_inscripcion=None):
     # Diccionario normalizado para búsqueda insensible a mayúsculas/minúsculas
     materias_normalizadas = {materia.lower(): materia for materia in MATERIAS_CREDITOS}
     
+
     def obtener_creditos_totales():
         total = 0
         for item in tabla_seleccionadas.get_children():
@@ -185,10 +202,6 @@ def VentanaMaterias(ventana_inscripcion=None):
             except (ValueError, IndexError):
                 pass # Manejar casos donde 'uc' no es un número o no existe
         return total
-
-    def actualizar_total_uc():
-        current_total = obtener_creditos_totales()
-        total_uc_var.set(f"Total UC: {current_total} / {MAX_CREDITOS}")
 
     def esta_en_grupo_excluyente(nueva_materia):
         for grupo in grupos_excluyentes:

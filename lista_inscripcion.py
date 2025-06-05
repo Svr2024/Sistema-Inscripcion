@@ -340,10 +340,26 @@ class VentanaInscripcion(tk.Toplevel):
         selected = tree.selection()
         if selected:
             item = tree.item(selected[0])
-            print(selected[0])
             for key, value in zip(self.entradas.keys(), item["values"]):
                 self.entradas[key].delete(0, tk.END)
                 self.entradas[key].insert(0, value)
+            # Cargar materias confirmadas para estudiantes inscritos
+            cedula = item["values"][0]
+            try:
+                estudiantes = Db_json.cargar_estudiantes_json("estudiantes.json")
+                materias = []
+                for est in estudiantes:
+                    if str(est.cedula) == str(cedula) and est.estado.lower() == "inscrito":
+                        materias = getattr(est, 'materias', [])
+                        break
+            except Exception:
+                materias = []
+            # Actualizar tabla de materias confirmadas
+            self.tabla_materias_confirmadas.delete(*self.tabla_materias_confirmadas.get_children())
+            from pila_materias import MATERIAS_CREDITOS
+            for m in materias:
+                uc = MATERIAS_CREDITOS.get(m, 0)
+                self.tabla_materias_confirmadas.insert("", "end", values=(m, uc))
         else:  
             self.actualizar_campos_desde_archivo()
 
