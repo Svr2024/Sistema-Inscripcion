@@ -34,7 +34,7 @@ class VentanaInscripcion(tk.Toplevel):
         self.geometry("850x650")
         self.configure(bg="white")
         self.pila_cambios = Pila()
-        center_window(self, 850, 650)
+        center_window(self, 820, 680)
         
 
         contenedor = tk.Canvas(self,  bg="white")
@@ -48,6 +48,7 @@ class VentanaInscripcion(tk.Toplevel):
             self.destroy()
             if self.master:
                 self.master.deiconify()
+                self.master.state("zoomed")
         frame_atras = tk.Frame(self.frame_contenido , bg="white")
         frame_atras.pack(anchor="w", pady=(5, 0), padx=5)
         btn_atras = tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal , bg="#183386", fg="white")

@@ -61,7 +61,7 @@ def VentanaMaterias(ventana_inscripcion=None):
     ventana.title("Inclusión de Materias")
     ventana.configure(bg="white")
     ventana.geometry("750x450")
-    center_window(ventana, 750, 450)
+    center_window(ventana, 750, 500)
 
     # --------------------------
     # Botón Atrás
@@ -78,7 +78,7 @@ def VentanaMaterias(ventana_inscripcion=None):
     pila_materias = Pila()  # Crear pila para materias seleccionadas
 
     frame_entrada = tk.Frame(ventana, bg="white")
-    frame_entrada.pack(pady=10)
+    frame_entrada.pack(pady=10, expand=True)
 
     tk.Label(frame_entrada, text="Materia:", bg="white").pack(side=tk.LEFT)
     entrada_materia = tk.Entry(frame_entrada, width=40, bg="#183386", fg="white")
@@ -89,7 +89,7 @@ def VentanaMaterias(ventana_inscripcion=None):
     boton_agregar.pack(side=tk.LEFT, padx=10)
 
     frame_tablas = tk.Frame(ventana, bg="white")
-    frame_tablas.pack(pady=10, fill="both", expand=True)
+    frame_tablas.pack(expand=True, fill="both")
     
     # === Filtro de búsqueda de materias disponibles ===
     frame_busqueda = tk.Frame(frame_tablas, bg="white")
@@ -261,6 +261,32 @@ def VentanaMaterias(ventana_inscripcion=None):
     # Botón Confirmar Materias 
     boton_confirmar = tk.Button(ventana, text="Confirmar materias", command=confirmar_materias, bg="#183386", fg="white")
     boton_confirmar.pack(pady=10)
+    
+    # Función para visualizar la pila gráficamente
+    def visualizar_pila_graphica():
+        elementos = pila_materias.obtener_contenido()
+        graf_win = tk.Toplevel(ventana)
+        graf_win.title("Visualización de Pila")
+        canvas = tk.Canvas(graf_win, bg="white")
+        canvas.pack(fill="both", expand=True)
+        w, h, y0, spacing = 200, 40, 20, 20
+        canvas.config(width=220, height= max(100, len(elementos)*(h+spacing) + 20))
+        graf_win.update_idletasks()
+        center_window(graf_win)
+        
+        # Dimensiones de nodos y márgenes
+        cw = canvas.winfo_width() or 220
+        x0 = (cw - w) // 2 if cw > w else 10  # fallback visual
+        for idx, val in enumerate(elementos):
+            y = y0 + idx * (h + spacing)
+            canvas.create_rectangle(x0, y, x0 + w, y + h, fill="#E6EDFF")
+            canvas.create_text(x0 + w/2, y + h/2, text=val, font=("Arial", 10))
+            if idx < len(elementos) - 1:
+                canvas.create_line(x0 + w/2, y + h, x0 + w/2, y + h + spacing, arrow="last")
+    
+    # Botón para visualizar la pila
+    btn_visualizar = tk.Button(ventana, text="Visualizar Pila", command=visualizar_pila_graphica, bg="#183386", fg="white")
+    btn_visualizar.pack(pady=10)
     
     def filtrar_materias(event=None):
         busqueda = entrada_busqueda.get().strip().lower()

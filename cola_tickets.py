@@ -29,10 +29,8 @@ def center_window(win, width=None, height=None):
 def VentanaTickets(master=None):
     ventana = tk.Toplevel(master)
     ventana.title("Cola de Espera")
-    ventana.configure(bg="#E6EDFF")
-    ventana.geometry("500x400")
-    ventana.resizable(0,0) # Impidiendo redimensión de la ventana
-    center_window(ventana, 500, 400)
+    # Maximizar ventana
+    ventana.state("zoomed")
     ventana.configure(bg="#CCD1D1")
 
     label_style = {"bg": "#CCD1D1", "font": ("Arial", 10), "width": 15, "anchor": "w"}
@@ -108,7 +106,7 @@ def VentanaTickets(master=None):
      ventana.destroy()
      if master is not None:
         master.deiconify()
-
+        master.state("zoomed")
 
     def ordenar_prioridad():
         if not cola.Vacia():
@@ -139,7 +137,7 @@ def VentanaTickets(master=None):
                         "Licenciatura en Física"]
 
     frame_principal = tk.Frame(ventana, bg="#CCD1D1")
-    frame_principal.pack(pady=20)
+    frame_principal.pack(expand=True)
 
     frame_atras = tk.Frame(frame_principal, bg="#CCD1D1")
     frame_atras.pack(anchor="w", pady=(0, 20))

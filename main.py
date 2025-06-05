@@ -33,19 +33,22 @@ root = tk.Tk()
 root.title("Sistema de Inscripción")
 
 
-root.geometry("800x600")
+# root.geometry("800x600")
 
 
 root.configure(bg="white")
 
-# Centrar ventana en la pantalla
-root.update_idletasks()
-width = 800
-height = 600
-x = (root.winfo_screenwidth() // 2) - (width // 2)
-y = (root.winfo_screenheight() // 2) - (height // 2)
-root.geometry(f"{width}x{height}+{x}+{y}")
-
+# Centrar ventana en la pantalla y ajustarla al 90% del espacio disponible en pantalla
+# root.update_idletasks()
+# screen_width = root.winfo_screenwidth()
+# screen_height = root.winfo_screenheight()
+# width = int(screen_width * 0.9)
+# height = int(screen_height * 0.9)
+# x = (screen_width // 2) - (width // 2)
+# y = (screen_height // 2) - (height // 2)
+# root.geometry(f"{width}x{height}+{x}+{y}")
+# Maximizar ventana por defecto on Windows
+root.state("zoomed")
 
 frame = tk.Frame(root, bg="white")
 frame.pack(expand=True)
@@ -64,7 +67,6 @@ color_texto = "white"
 
 tk.Button(frame, text="Cola de espera", width=30, bg=color_boton, fg=color_texto, command=abrir_ventana_tickets).pack(pady=5)
 tk.Button(frame, text="Inscripción de Estudiantes ", width=30, bg=color_boton, fg=color_texto, command=abrir_ventana_inscripcion).pack(pady=5)
-tk.Button(frame, text="Materias", width=30, bg=color_boton, fg=color_texto, command=abrir_ventana_materias).pack(pady=5)
 
 
 root.mainloop()
