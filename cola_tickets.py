@@ -30,9 +30,36 @@ def VentanaTickets(master=None):
     ventana = tk.Toplevel(master)
     ventana.title("Cola de Espera")
     ventana.configure(bg="#E6EDFF")
-    ventana.geometry("400x400")
+    ventana.geometry("500x400")
     ventana.resizable(0,0) # Impidiendo redimensión de la ventana
-    center_window(ventana, 400, 400)
+    center_window(ventana, 500, 400)
+    ventana.configure(bg="#CCD1D1")
+
+    label_style = {"bg": "#CCD1D1", "font": ("Arial", 10), "width": 15, "anchor": "w"}
+    entry_style = {"width": 25, "font": ("Arial", 10), "borderwidth": 1, "relief": "solid"}
+    combobox_style = {"width": 23, "font": ("Arial", 10)}
+    button_style = {"width": 15}
+    
+    # Configurar estilos para los widgets ttk
+    estilo = ttk.Style()
+    estilo.theme_use('clam')
+
+    # Crear estilo para los botones ttk
+    estilo = ttk.Style()
+    estilo.configure('TButton', 
+                   font=('Arial', 10, 'bold'),
+                   background="#AED6F1",
+                   foreground="black",
+                   padding=10,
+                   borderwidth=1)
+    
+    estilo.configure("TCombobox", fieldbackground="#FFFFFF", background="#FFFFFF", font=("Arial", 10))
+
+
+
+    estilo.map('TButton',
+              background=[('active', "#183386")],
+              foreground=[('active', 'white')])
 
     # Crear una instancia de Cola
     cola = Cola()
@@ -111,30 +138,43 @@ def VentanaTickets(master=None):
                         "Licenciatura en Matemáticas",
                         "Licenciatura en Física"]
 
-    frame_atras = tk.Frame(ventana)
-    frame_atras.pack(anchor="w", side="top", padx=10)
+    frame_principal = tk.Frame(ventana, bg="#CCD1D1")
+    frame_principal.pack(pady=20)
 
-    label_titulo = tk.Label(ventana, text="Taquilla",  bg="#E6EDFF", font=("Arial", 16))
-    label_titulo.pack(pady=10)
+    frame_atras = tk.Frame(frame_principal, bg="#CCD1D1")
+    frame_atras.pack(anchor="w", pady=(0, 20))
 
-    tk.Label(ventana, text="Nombre:",  bg="#E6EDFF").pack()
-    entrada_nombre = tk.Entry(ventana)
-    entrada_nombre.pack()
+    label_titulo = tk.Label(frame_principal, text="Taquilla", font=("Arial", 16, "bold"), bg="#CCD1D1")
+    label_titulo.pack(pady=(0, 20))
 
-    tk.Label(ventana, text="Cédula:",  bg="#E6EDFF").pack()
-    entrada_cedula = tk.Entry(ventana)
-    entrada_cedula.pack()
+    # Frame para campos de entrada
+    frame_campos = tk.Frame(frame_principal, bg="#CCD1D1")
+    frame_campos.pack()
 
-    tk.Label(ventana, text="Carrera:",  bg="#E6EDFF").pack()
-    select_carrera = ttk.Combobox(ventana, value=carrera_opciones, state="readonly")
-    select_carrera.pack()
+    tk.Label(frame_campos, text="Nombre:", **label_style).grid(row=0, column=0, sticky="w", pady=8)
+    entrada_nombre = tk.Entry(frame_campos, **entry_style)
+    entrada_nombre.grid(row=0, column=1, pady=8, padx=10)
 
-    tk.Label(ventana, text="Prioridad (1-10):",  bg="#E6EDFF").pack()
-    select_prioridad = ttk.Combobox(ventana, values=prioridad_opciones, state="readonly")
-    select_prioridad.pack()
+    tk.Label(frame_campos, text="Cédula:", **label_style).grid(row=1, column=0, sticky="w", pady=8)
+    entrada_cedula = tk.Entry(frame_campos, **entry_style)
+    entrada_cedula.grid(row=1, column=1, pady=8, padx=10)
 
-    tk.Button(frame_atras, text="← Atrás", command=regresar_a_principal, bg="#183386", fg="white").pack(side=tk.LEFT, pady=10)
-    tk.Button(ventana, text="Obtener Ticket", command=añadir_en_cola, bg="#183386", fg="white").pack(pady=10)
-    tk.Button(ventana, text="Cerrar Taquilla", command=ordenar_prioridad, bg="#183386", fg="white").pack(pady=10)
-    tk.Button(ventana, text="Visualizar Cola", command=ver_cola, bg="#183386", fg="white").pack(pady=10)
+    tk.Label(frame_campos, text="Carrera:", **label_style).grid(row=2, column=0, sticky="w", pady=8)
+    select_carrera = ttk.Combobox(frame_campos, values=carrera_opciones, state="readonly", **combobox_style)
+    select_carrera.grid(row=2, column=1, pady=8, padx=10)
+
+    tk.Label(frame_campos, text="Prioridad (1-10):", **label_style).grid(row=3, column=0, sticky="w", pady=8)
+    select_prioridad = ttk.Combobox(frame_campos, values=prioridad_opciones, state="readonly", **combobox_style)
+    select_prioridad.grid(row=3, column=1, pady=8, padx=10)
+
+    # Frame para botones principales
+    frame_botones = tk.Frame(frame_principal, bg="#CCD1D1")
+    frame_botones.pack(pady= (30, 10))
+
+    ttk.Button(frame_atras, text="← Atrás", command=regresar_a_principal).pack(side=tk.LEFT)
+
+    # Botones principales
+    ttk.Button(frame_botones, text="Obtener Ticket", command=añadir_en_cola, **button_style).pack(side=tk.LEFT, padx=10, pady=5)
+    ttk.Button(frame_botones, text="Cerrar Taquilla", command=ordenar_prioridad, **button_style).pack(side=tk.LEFT, padx=10, pady=5)
+    ttk.Button(frame_botones, text="Visualizar Cola", command=ver_cola, **button_style).pack(side=tk.LEFT, padx=10, pady=5)
     return ventana
