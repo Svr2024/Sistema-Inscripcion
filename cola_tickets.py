@@ -48,8 +48,8 @@ def VentanaTickets(master=None):
     estilo = ttk.Style()
     estilo.configure('TButton', 
                    font=('Arial', 10, 'bold'),
-                   background="#AED6F1",
-                   foreground="black",
+                   background="#183386",
+                   foreground="white",
                    padding=10,
                    borderwidth=1)
     
